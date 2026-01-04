@@ -8,8 +8,7 @@ const Contact = () => {
           <h2 className="text-4xl md:text-5xl font-bold text-gray-100 mb-4">Get In Touch</h2>
           <div className="w-24 h-1 bg-primary-500 mx-auto mb-4"></div>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-            I'm always open to discussing new opportunities, interesting projects, 
-            or just having a conversation about technology. Feel free to reach out!
+            Open to discussing opportunities and projects. Feel free to reach out.
           </p>
         </div>
         

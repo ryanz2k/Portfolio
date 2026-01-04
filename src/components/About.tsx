@@ -8,25 +8,22 @@ const About = () => {
         </div>
         
         <div className="max-w-4xl mx-auto">
-          <div className="prose prose-lg mx-auto text-gray-300 leading-relaxed">
+          <div className="text-gray-300 leading-relaxed">
             <p className="text-lg mb-6">
-              I am a motivated Information Technology student at the University of Cebu – Banilad, 
-              with a passion for creating innovative solutions through web development, system 
-              development, and database integration.
+              I'm an Information Technology student at the University of Cebu – Banilad. 
+              I work on web development, system development, and database integration projects.
             </p>
             
             <p className="text-lg mb-6">
-              With hands-on experience gained through academic projects and professional work, 
-              I have developed expertise in building scalable web applications, managing 
-              e-commerce platforms, and optimizing digital experiences. My journey includes 
-              working as an E-Commerce Specialist with Shopify integrations and serving as a 
-              WordPress Developer for diverse professional clients.
+              Through academic projects and professional work, I've built web applications, 
+              managed e-commerce platforms, and worked on various WordPress sites. I currently 
+              work as an E-Commerce Specialist handling Shopify integrations and also do 
+              WordPress development for clients.
             </p>
             
             <p className="text-lg">
-              I am actively seeking opportunities to apply my technical skills, learn from 
-              industry professionals, and contribute meaningfully to forward-thinking companies 
-              while taking on new challenges that drive my growth as a developer.
+              I'm looking for opportunities to apply my skills and continue learning in a 
+              professional environment.
             </p>
           </div>
         </div>

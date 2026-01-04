@@ -109,14 +109,14 @@ const Education = () => {
               {honors.map((honor, index) => (
                 <div
                   key={index}
-                  className="bg-gradient-to-r from-primary-500/20 to-primary-600/20 rounded-lg p-4 border border-primary-500/30"
+                  className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors border border-gray-700"
                 >
                   <div className="flex items-center h-full">
                     <FaAward className="text-primary-400 mr-3 flex-shrink-0 text-xl" />
                     <div className="flex flex-col justify-center">
-                      <p className="text-gray-100 font-semibold">{honor.title}</p>
+                      <p className="text-gray-100 font-medium">{honor.title}</p>
                       {honor.issuer && (
-                        <p className="text-sm text-primary-300 font-medium">{honor.issuer}</p>
+                        <p className="text-sm text-gray-400">{honor.issuer}</p>
                       )}
                     </div>
                   </div>

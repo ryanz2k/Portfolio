@@ -13,35 +13,35 @@ const Projects = () => {
   const projects: Project[] = [
     {
       title: 'Inventory Management & POS System',
-      description: 'A comprehensive point-of-sale system with inventory management capabilities, designed for efficient business operations.',
+      description: 'Point-of-sale system with inventory management for business operations.',
       icon: <FaShoppingCart />,
       technologies: ['React', 'Node.js', 'MongoDB', 'Express.js'],
       category: 'Full Stack'
     },
     {
       title: 'SmartQuest - Gamified Learning Application',
-      description: 'An innovative educational platform that gamifies learning experiences, making education more engaging and interactive.',
+      description: 'Educational platform that gamifies learning experiences.',
       icon: <IoMdSchool />,
       technologies: ['React', 'Firebase', 'Unity'],
       category: 'Web & Game'
     },
     {
       title: 'EverTale - Roguelike Game',
-      description: 'A procedurally generated roguelike game featuring dynamic gameplay and engaging mechanics.',
+      description: 'Procedurally generated roguelike game with dynamic gameplay.',
       icon: <FaGamepad />,
       technologies: ['Unity', 'C#'],
       category: 'Game Development'
     },
     {
       title: 'Enrollment System',
-      description: 'A complete enrollment management system for educational institutions with user-friendly interface and robust functionality.',
+      description: 'Enrollment management system for educational institutions.',
       icon: <FaGraduationCap />,
       technologies: ['Java', 'SQLite', 'Swing'],
       category: 'Desktop Application'
     },
     {
       title: 'Audio Media Player',
-      description: 'A feature-rich media player application with modern UI and comprehensive audio playback capabilities.',
+      description: 'Media player application with audio playback features.',
       icon: <FaMusic />,
       technologies: ['Java', 'JavaFX'],
       category: 'Desktop Application'

@@ -28,9 +28,8 @@ const Hero = () => {
           </p>
           
           <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-12">
-            Motivated academic achiever with hands-on experience in web development, 
-            system development, and database integration. Eager to contribute 
-            technical skills and learn from industry professionals.
+            I build web applications and work on e-commerce platforms. Always learning 
+            and looking for new challenges.
           </p>
           
           <div className="flex justify-center space-x-6">
