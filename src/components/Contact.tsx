@@ -1,4 +1,4 @@
-import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaLinkedin, FaGithub } from 'react-icons/fa'
+import { FaEnvelope, FaPhone, FaLinkedin, FaGithub } from 'react-icons/fa'
 
 const Contact = () => {
   return (
@@ -43,18 +43,6 @@ const Contact = () => {
                   >
                     0976 065 6704
                   </a>
-                </div>
-              </div>
-              
-              <div className="flex items-start space-x-4 md:col-span-2">
-                <div className="bg-primary-500/20 p-3 rounded-lg border border-primary-500/30">
-                  <FaMapMarkerAlt className="text-primary-400 text-xl" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-100 mb-1">Location</h3>
-                  <p className="text-gray-300">
-                    Magsaysay St., Suba, Cebu City 6000
-                  </p>
                 </div>
               </div>
             </div>

@@ -39,7 +39,6 @@ const Navbar = ({ activeSection }: NavbarProps) => {
               <div className="bg-gradient-to-br from-primary-500 to-primary-600 p-2 rounded-lg">
                 <HiCode className="text-white text-xl" />
               </div>
-              <span className="text-xl font-bold text-gray-100">JRG</span>
             </button>
           </div>
 
