@@ -19,20 +19,28 @@ export default defineConfig({
 - If your repo is `portfolio`, use `base: '/portfolio/'`
 - For user.github.io repos (custom domain), use `base: '/'`
 
-### Step 2: Deploy
+### Step 2: Enable GitHub Pages (IMPORTANT - Do This First!)
+
+**⚠️ You MUST enable GitHub Pages in repository settings BEFORE the workflow can deploy:**
+
+1. **Go to your GitHub repository**
+2. **Click "Settings"** (top menu)
+3. **Click "Pages"** (left sidebar)
+4. **Under "Build and deployment" → Source:**
+   - Select **"GitHub Actions"** (NOT "Deploy from a branch")
+   - Click **"Save"**
+
+### Step 3: Deploy
 
 The project includes GitHub Actions for automatic deployment:
 
 1. **Push your code to GitHub** (make sure you're on `main` or `master` branch)
-2. **Enable GitHub Pages**:
-   - Go to your repository on GitHub
-   - Navigate to Settings → Pages
-   - Under "Source", select **"GitHub Actions"**
-   - Save
-
-3. **The workflow will automatically deploy** on every push to your main branch
+2. **Go to the "Actions" tab** - the workflow should run automatically
+3. **Wait for the workflow to complete** (green checkmark)
 
 Your site will be available at: `https://your-username.github.io/your-repo-name/`
+
+**Note**: If you see an error about "Pages site failed" or "Not Found", it means GitHub Pages isn't enabled yet. Go back to Step 2 and make sure you've selected "GitHub Actions" as the source.
 
 ## Alternative Deployment Options
 

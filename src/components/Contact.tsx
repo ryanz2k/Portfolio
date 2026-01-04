@@ -65,7 +65,7 @@ const Contact = () => {
               </h3>
               <div className="flex justify-center space-x-6">
                 <a
-                  href="https://github.com"
+                  href="https://github.com/ryanz2k"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-gray-100 text-gray-700 p-4 rounded-lg hover:bg-primary-600 hover:text-white transition-colors"
@@ -74,7 +74,7 @@ const Contact = () => {
                   <FaGithub size={24} />
                 </a>
                 <a
-                  href="https://linkedin.com"
+                  href="https://www.linkedin.com/in/ryanz2k/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-gray-100 text-gray-700 p-4 rounded-lg hover:bg-primary-600 hover:text-white transition-colors"
