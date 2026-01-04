@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { FaBars, FaTimes } from 'react-icons/fa'
+import { HiCode } from 'react-icons/hi'
 
 interface NavbarProps {
   activeSection: string
@@ -27,15 +28,18 @@ const Navbar = ({ activeSection }: NavbarProps) => {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm shadow-sm">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-800/95 backdrop-blur-sm shadow-lg border-b border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0">
             <button
               onClick={() => scrollToSection('hero')}
-              className="text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors"
+              className="flex items-center space-x-2 text-primary-400 hover:text-primary-300 transition-colors"
             >
-              JRG
+              <div className="bg-gradient-to-br from-primary-500 to-primary-600 p-2 rounded-lg">
+                <HiCode className="text-white text-xl" />
+              </div>
+              <span className="text-xl font-bold text-gray-100">JRG</span>
             </button>
           </div>
 
@@ -48,8 +52,8 @@ const Navbar = ({ activeSection }: NavbarProps) => {
                   onClick={() => scrollToSection(item.id)}
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     activeSection === item.id
-                      ? 'text-primary-600 bg-primary-50'
-                      : 'text-gray-700 hover:text-primary-600 hover:bg-gray-100'
+                      ? 'text-primary-400 bg-gray-700'
+                      : 'text-gray-300 hover:text-primary-400 hover:bg-gray-700'
                   }`}
                 >
                   {item.label}
@@ -62,7 +66,7 @@ const Navbar = ({ activeSection }: NavbarProps) => {
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-700 hover:text-primary-600 focus:outline-none"
+              className="text-gray-300 hover:text-primary-400 focus:outline-none"
             >
               {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
             </button>
@@ -73,15 +77,15 @@ const Navbar = ({ activeSection }: NavbarProps) => {
       {/* Mobile Navigation */}
       {isOpen && (
         <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-800 border-t border-gray-700">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
                 className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${
                   activeSection === item.id
-                    ? 'text-primary-600 bg-primary-50'
-                    : 'text-gray-700 hover:text-primary-600 hover:bg-gray-100'
+                    ? 'text-primary-400 bg-gray-700'
+                    : 'text-gray-300 hover:text-primary-400 hover:bg-gray-700'
                 }`}
               >
                 {item.label}

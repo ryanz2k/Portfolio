@@ -49,32 +49,32 @@ const Projects = () => {
   ]
 
   return (
-    <section id="projects" className="py-20 bg-white">
+    <section id="projects" className="py-20 bg-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Projects</h2>
-          <div className="w-24 h-1 bg-primary-600 mx-auto"></div>
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-100 mb-4">Projects</h2>
+          <div className="w-24 h-1 bg-primary-500 mx-auto"></div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {projects.map((project, index) => (
             <div
               key={index}
-              className="bg-gray-50 rounded-lg shadow-md p-6 hover:shadow-xl transition-all hover:-translate-y-1"
+              className="bg-gray-700 rounded-lg shadow-lg p-6 hover:shadow-xl transition-all hover:-translate-y-1 border border-gray-600"
             >
-              <div className="text-primary-600 text-4xl mb-4">
+              <div className="text-primary-400 text-4xl mb-4">
                 {project.icon}
               </div>
               
               <div className="mb-2">
-                <span className="inline-block bg-primary-100 text-primary-700 text-xs font-semibold px-2 py-1 rounded">
+                <span className="inline-block bg-primary-500/20 text-primary-300 text-xs font-semibold px-2 py-1 rounded border border-primary-500/30">
                   {project.category}
                 </span>
               </div>
               
-              <h3 className="text-xl font-bold text-gray-900 mb-3">{project.title}</h3>
+              <h3 className="text-xl font-bold text-gray-100 mb-3">{project.title}</h3>
               
-              <p className="text-gray-600 mb-4 leading-relaxed">
+              <p className="text-gray-300 mb-4 leading-relaxed">
                 {project.description}
               </p>
               
@@ -82,7 +82,7 @@ const Projects = () => {
                 {project.technologies.map((tech, idx) => (
                   <span
                     key={idx}
-                    className="bg-white text-gray-700 text-xs font-medium px-3 py-1 rounded-full border border-gray-200"
+                    className="bg-gray-800 text-gray-300 text-xs font-medium px-3 py-1 rounded-full border border-gray-600"
                   >
                     {tech}
                   </span>
@@ -97,4 +97,3 @@ const Projects = () => {
 }
 
 export default Projects
-

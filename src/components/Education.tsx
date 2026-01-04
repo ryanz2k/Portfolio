@@ -42,33 +42,33 @@ const Education = () => {
   ]
 
   return (
-    <section id="education" className="py-20 bg-white">
+    <section id="education" className="py-20 bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Education</h2>
-          <div className="w-24 h-1 bg-primary-600 mx-auto"></div>
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-100 mb-4">Education</h2>
+          <div className="w-24 h-1 bg-primary-500 mx-auto"></div>
         </div>
         
         <div className="max-w-4xl mx-auto">
           {/* Education */}
           <div className="mb-16">
-            <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">Academic Background</h3>
+            <h3 className="text-2xl font-bold text-gray-100 mb-8 text-center">Academic Background</h3>
             <div className="space-y-8">
               {education.map((edu, index) => (
                 <div
                   key={index}
-                  className="bg-gray-50 rounded-lg shadow-md p-8 hover:shadow-xl transition-shadow"
+                  className="bg-gray-800 rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow border border-gray-700"
                 >
                   <div className="flex items-start">
                     <div className="flex-shrink-0 mr-6">
-                      <div className="bg-primary-100 p-4 rounded-lg">
-                        <FaGraduationCap className="text-primary-600 text-2xl" />
+                      <div className="bg-primary-500/20 p-4 rounded-lg border border-primary-500/30">
+                        <FaGraduationCap className="text-primary-400 text-2xl" />
                       </div>
                     </div>
                     <div className="flex-grow">
-                      <h4 className="text-xl font-bold text-gray-900 mb-2">{edu.institution}</h4>
-                      <p className="text-lg text-primary-600 font-semibold mb-3">{edu.degree}</p>
-                      <div className="flex items-center text-gray-600">
+                      <h4 className="text-xl font-bold text-gray-100 mb-2">{edu.institution}</h4>
+                      <p className="text-lg text-primary-400 font-semibold mb-3">{edu.degree}</p>
+                      <div className="flex items-center text-gray-400">
                         <FaCalendarAlt className="mr-2" />
                         <span>{edu.period}</span>
                       </div>
@@ -81,19 +81,19 @@ const Education = () => {
 
           {/* Certificates */}
           <div className="mb-16">
-            <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">Certificates</h3>
+            <h3 className="text-2xl font-bold text-gray-100 mb-8 text-center">Certificates</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {certificates.map((cert, index) => (
                 <div
                   key={index}
-                  className="bg-gray-50 rounded-lg p-4 hover:bg-primary-50 transition-colors border border-gray-200"
+                  className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors border border-gray-700"
                 >
-                  <div className="flex items-center">
-                    <FaAward className="text-primary-600 mr-3 flex-shrink-0" />
-                    <div>
-                      <p className="text-gray-900 font-medium">{cert.title}</p>
+                  <div className="flex items-center h-full">
+                    <FaAward className="text-primary-400 mr-3 flex-shrink-0 text-xl" />
+                    <div className="flex flex-col justify-center">
+                      <p className="text-gray-100 font-medium">{cert.title}</p>
                       {cert.issuer && (
-                        <p className="text-sm text-gray-600">{cert.issuer}</p>
+                        <p className="text-sm text-gray-400">{cert.issuer}</p>
                       )}
                     </div>
                   </div>
@@ -104,19 +104,19 @@ const Education = () => {
 
           {/* Honors & Awards */}
           <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">Honors & Awards</h3>
+            <h3 className="text-2xl font-bold text-gray-100 mb-8 text-center">Honors & Awards</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {honors.map((honor, index) => (
                 <div
                   key={index}
-                  className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-4 border border-primary-200"
+                  className="bg-gradient-to-r from-primary-500/20 to-primary-600/20 rounded-lg p-4 border border-primary-500/30"
                 >
-                  <div className="flex items-center">
-                    <FaAward className="text-primary-600 mr-3 flex-shrink-0" />
-                    <div>
-                      <p className="text-gray-900 font-semibold">{honor.title}</p>
+                  <div className="flex items-center h-full">
+                    <FaAward className="text-primary-400 mr-3 flex-shrink-0 text-xl" />
+                    <div className="flex flex-col justify-center">
+                      <p className="text-gray-100 font-semibold">{honor.title}</p>
                       {honor.issuer && (
-                        <p className="text-sm text-primary-700 font-medium">{honor.issuer}</p>
+                        <p className="text-sm text-primary-300 font-medium">{honor.issuer}</p>
                       )}
                     </div>
                   </div>
@@ -131,4 +131,3 @@ const Education = () => {
 }
 
 export default Education
-

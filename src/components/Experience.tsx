@@ -32,36 +32,36 @@ const Experience = () => {
   ]
 
   return (
-    <section id="experience" className="py-20 bg-gray-50">
+    <section id="experience" className="py-20 bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Experience</h2>
-          <div className="w-24 h-1 bg-primary-600 mx-auto"></div>
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-100 mb-4">Experience</h2>
+          <div className="w-24 h-1 bg-primary-500 mx-auto"></div>
         </div>
         
         <div className="max-w-4xl mx-auto space-y-12">
           {experiences.map((exp, index) => (
             <div
               key={index}
-              className="bg-white rounded-lg shadow-md p-8 hover:shadow-xl transition-shadow"
+              className="bg-gray-800 rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow border border-gray-700"
             >
               <div className="flex items-start mb-4">
                 <div className="flex-shrink-0 mr-4">
-                  <div className="bg-primary-100 p-3 rounded-lg">
-                    <FaBriefcase className="text-primary-600 text-xl" />
+                  <div className="bg-primary-500/20 p-3 rounded-lg border border-primary-500/30">
+                    <FaBriefcase className="text-primary-400 text-xl" />
                   </div>
                 </div>
                 <div className="flex-grow">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{exp.title}</h3>
-                  <p className="text-xl text-primary-600 font-semibold mb-3">{exp.company}</p>
-                  <div className="flex items-center text-gray-600 mb-4">
+                  <h3 className="text-2xl font-bold text-gray-100 mb-2">{exp.title}</h3>
+                  <p className="text-xl text-primary-400 font-semibold mb-3">{exp.company}</p>
+                  <div className="flex items-center text-gray-400 mb-4">
                     <FaCalendarAlt className="mr-2" />
                     <span>{exp.period}</span>
                   </div>
                   <ul className="space-y-2">
                     {exp.description.map((item, idx) => (
-                      <li key={idx} className="flex items-start text-gray-700">
-                        <span className="text-primary-600 mr-2">▸</span>
+                      <li key={idx} className="flex items-start text-gray-300">
+                        <span className="text-primary-400 mr-2">▸</span>
                         <span>{item}</span>
                       </li>
                     ))}
@@ -77,4 +77,3 @@ const Experience = () => {
 }
 
 export default Experience
-
