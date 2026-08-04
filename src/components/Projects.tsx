@@ -78,6 +78,7 @@ const WORDPRESS_PROJECTS: HoverableProject[] = [
     technologies: ['WordPress', 'Elementor', 'PHP', 'SEO', 'GoHighLevel'],
     previewImage: zonafloorsImg,
     category: 'WordPress',
+    link: 'https://www.zonafloors.com/',
   },
   {
     title: 'Lenka Charvatová',
@@ -87,6 +88,7 @@ const WORDPRESS_PROJECTS: HoverableProject[] = [
     technologies: ['WordPress', 'Elementor', 'PHP', 'SEO', 'MailerLite'],
     previewImage: lenkaImg,
     category: 'WordPress',
+    link: 'https://lenkacharvatova.com/',
   },
   {
     title: 'PetJet',
@@ -96,6 +98,7 @@ const WORDPRESS_PROJECTS: HoverableProject[] = [
     technologies: ['Shopify', 'PHP', 'Stripe', 'WordPress', 'Google Merchant', 'Google Analytics'],
     previewImage: petjetImg,
     category: 'Shopify',
+    link: 'https://thepetjetco.com/',
   },
 ]
 
@@ -176,18 +179,11 @@ const HoverableCard = ({
   }, [isHovered, cursorPos])
 
   // Offset the preview so it doesn't sit directly on the cursor
-  const OFFSET_X = 28
-  const OFFSET_Y = -previewSize.height / 2
+  const OFFSET_X = 20
+  const OFFSET_Y = -previewSize.height - 10
 
-  // Clamp to viewport edges
-  const previewLeft = Math.min(
-    cursorPos.x + OFFSET_X,
-    window.innerWidth - previewSize.width - 8
-  )
-  const previewTop = Math.max(
-    8,
-    Math.min(cursorPos.y + OFFSET_Y, window.innerHeight - previewSize.height - 8)
-  )
+  const previewLeft = cursorPos.x + OFFSET_X
+  const previewTop = cursorPos.y + OFFSET_Y
 
   return (
     <>
@@ -340,11 +336,11 @@ const OtherProjectCard = ({ project, index }: { project: OtherProject; index: nu
   }, [isHovered, cursorPos])
 
   const previewSize = { width: 480, height: 300 }
-  const OFFSET_X = 28
-  const OFFSET_Y = -previewSize.height / 2
+  const OFFSET_X = 20
+  const OFFSET_Y = -previewSize.height - 10
 
-  const previewLeft = Math.min(cursorPos.x + OFFSET_X, window.innerWidth - previewSize.width - 8)
-  const previewTop = Math.max(8, Math.min(cursorPos.y + OFFSET_Y, window.innerHeight - previewSize.height - 8))
+  const previewLeft = cursorPos.x + OFFSET_X
+  const previewTop = cursorPos.y + OFFSET_Y
 
   return (
     <>
