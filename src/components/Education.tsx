@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { FaAward } from 'react-icons/fa'
-import ucLogo from '../assets/uc-logo.png'
+import ucLogo from '../assets/uc-logo.webp'
 
 const SECTION_NUMBER = '05'
 

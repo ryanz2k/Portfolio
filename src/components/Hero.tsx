@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { FaGithub, FaLinkedin, FaEnvelope } from 'react-icons/fa'
 import { motion } from 'framer-motion'
-import profileImg from '../assets/profile.jpg'
+import profileImg from '../assets/profile.webp'
 
 const TYPED_ROLES = [
   'Full Stack Developer',
