@@ -1,96 +1,135 @@
-import { FaGraduationCap, FaCalendarAlt, FaAward } from 'react-icons/fa'
 import { motion } from 'framer-motion'
+import { FaAward } from 'react-icons/fa'
 import ucLogo from '../assets/uc-logo.png'
+
+const SECTION_NUMBER = '05'
 
 interface EducationItem {
   institution: string
   degree: string
   period: string
+  isUC: boolean
 }
 
-interface Award {
+interface AwardItem {
   title: string
   issuer?: string
+  unlocked?: boolean
 }
 
+const EDUCATION_ITEMS: EducationItem[] = [
+  {
+    institution: 'University of Cebu – Banilad',
+    degree:      'Bachelor of Science in Information Technology',
+    period:      '2022 – 2026',
+    isUC:        true,
+  },
+  {
+    institution: 'University of Cebu – Pri',
+    degree:      'Senior High School',
+    period:      '2015 – 2021',
+    isUC:        true,
+  },
+]
+
+const CERTIFICATES: AwardItem[] = [
+  { title: 'NC II Certificate', issuer: 'Computer Systems Servicing', unlocked: true },
+  { title: 'Get Connected',     issuer: 'Cisco', unlocked: true },
+  { title: 'Introduction to IoT',             issuer: 'Cisco', unlocked: true },
+  { title: 'Introduction to Cybersecurity',   issuer: 'Cisco', unlocked: true },
+  { title: 'Entrepreneurship',                issuer: 'Cisco', unlocked: true },
+  { title: 'Introduction to Packet Tracer',   issuer: 'Cisco', unlocked: true },
+  { title: 'Networking Essentials',           issuer: 'Cisco', unlocked: true },
+  { title: 'CCNA: Switching, Routing & Wireless Essentials', issuer: 'Cisco', unlocked: true },
+]
+
+const HONORS: AwardItem[] = [
+  { title: 'High Honors',  unlocked: true },
+  { title: "Dean's Lister", issuer: '5× consecutive', unlocked: true },
+]
+
 const Education = () => {
-  const education: EducationItem[] = [
-    {
-      institution: 'University of Cebu - Banilad',
-      degree: 'Bachelor of Science in Information Technology',
-      period: '2022 - 2026'
-    },
-    {
-      institution: 'University of Cebu - Pri',
-      degree: 'Senior High School',
-      period: '2015 - 2021'
-    }
-  ]
-
-  const certificates: Award[] = [
-    { title: 'NC II Certificate (Computer Systems Servicing)' },
-    { title: 'Get Connected', issuer: 'Cisco' },
-    { title: 'Introduction to IoT', issuer: 'Cisco' },
-    { title: 'Introduction to Cybersecurity', issuer: 'Cisco' },
-    { title: 'Entrepreneurship', issuer: 'Cisco' },
-    { title: 'Introduction to Packet Tracer', issuer: 'Cisco' },
-    { title: 'Networking Essentials', issuer: 'Cisco' },
-    { title: 'CCNA: Switching, Routing, and Wireless Essentials', issuer: 'Cisco' }
-  ]
-
-  const honors: Award[] = [
-    { title: 'High Honors' },
-    { title: "Dean's Lister", issuer: '4x' }
-  ]
-
   return (
-    <section id="education" className="py-20 bg-gray-900">
+    <section id="education" className="py-24" style={{ background: 'rgba(15,15,15,0.85)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* Section header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, x: -30 }}
+          whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          transition={{ duration: 0.5 }}
+          className="flex items-center gap-4 mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-100 mb-4">Education</h2>
-          <div className="w-24 h-1 bg-primary-500 mx-auto rounded-full"></div>
+          <span className="font-pixel text-primary-500/50" style={{ fontSize: '10px' }}>
+            {SECTION_NUMBER}.
+          </span>
+          <h2 className="section-heading">EDUCATION</h2>
+          <div className="h-px flex-1 bg-gradient-to-r from-primary-500/40 to-transparent" />
         </motion.div>
 
-        <div className="max-w-4xl mx-auto">
-          {/* Education */}
-          <div className="mb-16">
-            <h3 className="text-2xl font-bold text-gray-100 mb-8 text-center">Academic Background</h3>
-            <div className="space-y-8">
-              {education.map((edu, index) => (
+        <div className="max-w-4xl mx-auto space-y-16">
+
+          {/* Academic background */}
+          <div>
+            <p className="font-pixel text-gray-600 text-xs tracking-widest mb-8">
+              ── ACADEMIC RECORD
+            </p>
+            <div className="space-y-4">
+              {EDUCATION_ITEMS.map((edu, i) => (
                 <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -30 }}
+                  key={i}
+                  initial={{ opacity: 0, x: -24 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.4 }}
-                  className="bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg p-8 hover:shadow-2xl hover:shadow-primary-500/10 transition-all border border-gray-700 hover:border-primary-500/50 group"
+                  transition={{ duration: 0.45, delay: i * 0.12 }}
+                  className="arcade-card p-6 flex items-center gap-6 group"
                 >
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 mr-6">
-                      <div className="bg-primary-500/10 p-4 rounded-xl border border-primary-500/20 group-hover:bg-primary-500/20 group-hover:scale-110 transition-all">
-                        {edu.institution.includes('University of Cebu') ? (
-                          <img
-                            src={ucLogo}
-                            alt="UC Logo"
-                            className="w-12 h-12 object-contain bg-white rounded p-1"
-                          />
-                        ) : null}
-                        <FaGraduationCap className={`text-primary-400 text-2xl ${edu.institution.includes('University of Cebu') ? 'hidden' : ''}`} />
-                      </div>
+                  {edu.isUC && (
+                    <div
+                      className="flex-shrink-0 bg-white rounded p-1.5 group-hover:scale-105 transition-transform"
+                      style={{ border: '1px solid rgba(255,34,68,0.3)' }}
+                    >
+                      <img src={ucLogo} alt="UC Logo" className="w-10 h-10 object-contain" />
                     </div>
-                    <div className="flex-grow">
-                      <h4 className="text-xl font-bold text-gray-100 mb-2">{edu.institution}</h4>
-                      <p className="text-lg text-primary-400 font-semibold mb-3">{edu.degree}</p>
-                      <div className="flex items-center text-gray-400">
-                        <FaCalendarAlt className="mr-2" />
-                        <span>{edu.period}</span>
-                      </div>
-                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-pixel text-white text-xs tracking-wide mb-1">
+                      {edu.institution}
+                    </h4>
+                    <p className="font-mono text-primary-400 text-sm mb-2">{edu.degree}</p>
+                    <span className="font-mono text-gray-500 text-xs">{edu.period}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Honors */}
+          <div>
+            <p className="font-pixel text-gray-600 text-xs tracking-widest mb-8">
+              ── HONORS & AWARDS
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {HONORS.map((honor, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: i * 0.08 }}
+                  whileHover={{ scale: 1.03 }}
+                  className="arcade-card p-4 flex items-center gap-4"
+                >
+                  <FaAward
+                    className="text-accent-500 flex-shrink-0 text-2xl"
+                    style={{ filter: 'drop-shadow(0 0 6px rgba(255,224,0,0.5))' }}
+                  />
+                  <div>
+                    <p className="font-mono text-white text-sm font-bold">{honor.title}</p>
+                    {honor.issuer && (
+                      <p className="font-mono text-gray-500 text-xs">{honor.issuer}</p>
+                    )}
                   </div>
                 </motion.div>
               ))}
@@ -98,60 +137,47 @@ const Education = () => {
           </div>
 
           {/* Certificates */}
-          <div className="mb-16">
-            <h3 className="text-2xl font-bold text-gray-100 mb-8 text-center">Certificates</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {certificates.map((cert, index) => (
+          <div>
+            <p className="font-pixel text-gray-600 text-xs tracking-widest mb-8">
+              ── CERTIFICATES UNLOCKED
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {CERTIFICATES.map((cert, i) => (
                 <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
+                  key={i}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.4 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 hover:bg-gray-700/80 transition-colors border border-gray-700 hover:border-primary-500/40"
+                  transition={{ duration: 0.35, delay: i * 0.06 }}
+                  whileHover={{ scale: 1.02 }}
+                  className="flex items-center gap-3 p-4 group transition-all duration-150"
+                  style={{
+                    border: '1px solid rgba(255,34,68,0.2)',
+                    background: 'rgba(255,34,68,0.03)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255,224,0,0.4)'
+                    e.currentTarget.style.background   = 'rgba(255,224,0,0.03)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255,34,68,0.2)'
+                    e.currentTarget.style.background   = 'rgba(255,34,68,0.03)'
+                  }}
                 >
-                  <div className="flex items-center h-full">
-                    <FaAward className="text-primary-400 mr-3 flex-shrink-0 text-xl" />
-                    <div className="flex flex-col justify-center">
-                      <p className="text-gray-100 font-medium">{cert.title}</p>
-                      {cert.issuer && (
-                        <p className="text-sm text-gray-400">{cert.issuer}</p>
-                      )}
-                    </div>
+                  <span className="font-pixel text-primary-500 flex-shrink-0" style={{ fontSize: '10px' }}>
+                    ✦
+                  </span>
+                  <div>
+                    <p className="font-mono text-gray-200 text-xs font-medium">{cert.title}</p>
+                    {cert.issuer && (
+                      <p className="font-mono text-gray-600 text-xs">{cert.issuer}</p>
+                    )}
                   </div>
                 </motion.div>
               ))}
             </div>
           </div>
 
-          {/* Honors & Awards */}
-          <div>
-            <h3 className="text-2xl font-bold text-gray-100 mb-8 text-center">Honors & Awards</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {honors.map((honor, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4 }}
-                  whileHover={{ scale: 1.05 }}
-                  className="bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 hover:bg-gray-700/80 transition-colors border border-gray-700 hover:border-primary-500/40"
-                >
-                  <div className="flex items-center h-full">
-                    <FaAward className="text-primary-400 mr-3 flex-shrink-0 text-xl" />
-                    <div className="flex flex-col justify-center">
-                      <p className="text-gray-100 font-medium">{honor.title}</p>
-                      {honor.issuer && (
-                        <p className="text-sm text-gray-400">{honor.issuer}</p>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -159,3 +185,4 @@ const Education = () => {
 }
 
 export default Education
+

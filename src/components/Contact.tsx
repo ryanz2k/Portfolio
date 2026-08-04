@@ -1,84 +1,121 @@
+import { motion } from 'framer-motion'
 import { FaEnvelope, FaPhone, FaLinkedin, FaGithub } from 'react-icons/fa'
+
+const SECTION_NUMBER = '06'
+
+const CONTACT_ITEMS = [
+  {
+    icon: <FaEnvelope />,
+    label: 'EMAIL',
+    value: 'JohnRyanGomez812@gmail.com',
+    href:  'mailto:JohnRyanGomez812@gmail.com',
+  },
+  {
+    icon: <FaPhone />,
+    label: 'PHONE',
+    value: '0976 065 6704',
+    href:  'tel:09760656704',
+  },
+  {
+    icon: <FaGithub />,
+    label: 'GITHUB',
+    value: 'github.com/ryanz2k',
+    href:  'https://github.com/ryanz2k',
+    external: true,
+  },
+  {
+    icon: <FaLinkedin />,
+    label: 'LINKEDIN',
+    value: 'linkedin.com/in/ryanz2k',
+    href:  'https://www.linkedin.com/in/ryanz2k/',
+    external: true,
+  },
+]
 
 const Contact = () => {
   return (
-    <section id="contact" className="py-20 bg-gradient-to-br from-gray-900 to-gray-800">
+    <section id="contact" className="py-24" style={{ background: 'rgba(10,10,10,0.88)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-100 mb-4">Get In Touch</h2>
-          <div className="w-24 h-1 bg-primary-500 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-            Open to discussing opportunities and projects. Feel free to reach out.
-          </p>
-        </div>
-        
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-gray-800 rounded-lg shadow-xl p-8 md:p-12 border border-gray-700">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-              <div className="flex items-start space-x-4">
-                <div className="bg-primary-500/20 p-3 rounded-lg border border-primary-500/30">
-                  <FaEnvelope className="text-primary-400 text-xl" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-100 mb-1">Email</h3>
-                  <a
-                    href="mailto:JohnRyanGomez812@gmail.com"
-                    className="text-primary-400 hover:text-primary-300 transition-colors"
-                  >
-                    JohnRyanGomez812@gmail.com
-                  </a>
-                </div>
-              </div>
-              
-              <div className="flex items-start space-x-4">
-                <div className="bg-primary-500/20 p-3 rounded-lg border border-primary-500/30">
-                  <FaPhone className="text-primary-400 text-xl" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-100 mb-1">Phone</h3>
-                  <a
-                    href="tel:09760656704"
-                    className="text-gray-300 hover:text-primary-400 transition-colors"
-                  >
-                    0976 065 6704
-                  </a>
-                </div>
-              </div>
-            </div>
-            
-            <div className="border-t border-gray-700 pt-8">
-              <h3 className="text-lg font-semibold text-gray-100 mb-4 text-center">
-                Connect with me
-              </h3>
-              <div className="flex justify-center space-x-6">
-                <a
-                  href="https://github.com/ryanz2k"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-gray-700 text-gray-300 p-4 rounded-lg hover:bg-primary-600 hover:text-white transition-colors border border-gray-600"
-                  aria-label="GitHub"
+
+        {/* Section header */}
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center gap-4 mb-16"
+        >
+          <span className="font-pixel text-primary-500/50" style={{ fontSize: '10px' }}>
+            {SECTION_NUMBER}.
+          </span>
+          <h2 className="section-heading">CONTACT</h2>
+          <div className="h-px flex-1 bg-gradient-to-r from-primary-500/40 to-transparent" />
+        </motion.div>
+
+        <div className="max-w-2xl mx-auto text-center">
+
+
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="font-mono text-gray-400 text-sm mb-12 leading-relaxed"
+          >
+            Open to new opportunities, freelance work, and interesting projects.
+            <br />
+            <span className="text-primary-400">Ping me anytime.</span>
+          </motion.p>
+
+          {/* Contact cards grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12"
+          >
+            {CONTACT_ITEMS.map(({ icon, label, value, href, external }) => (
+              <a
+                key={label}
+                href={href}
+                target={external ? '_blank' : undefined}
+                rel={external ? 'noopener noreferrer' : undefined}
+                className="arcade-card p-5 flex items-center gap-4 group text-left transition-all duration-150"
+              >
+                <span
+                  className="text-primary-500 text-xl flex-shrink-0 group-hover:scale-110 transition-transform duration-150"
+                  style={{ filter: 'drop-shadow(0 0 6px rgba(255,34,68,0.5))' }}
                 >
-                  <FaGithub size={24} />
-                </a>
-                <a
-                  href="https://www.linkedin.com/in/ryanz2k/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-gray-700 text-gray-300 p-4 rounded-lg hover:bg-primary-600 hover:text-white transition-colors border border-gray-600"
-                  aria-label="LinkedIn"
-                >
-                  <FaLinkedin size={24} />
-                </a>
-                <a
-                  href="mailto:JohnRyanGomez812@gmail.com"
-                  className="bg-gray-700 text-gray-300 p-4 rounded-lg hover:bg-primary-600 hover:text-white transition-colors border border-gray-600"
-                  aria-label="Email"
-                >
-                  <FaEnvelope size={24} />
-                </a>
-              </div>
-            </div>
-          </div>
+                  {icon}
+                </span>
+                <div className="min-w-0">
+                  <p className="font-pixel text-gray-500 mb-1" style={{ fontSize: '8px', letterSpacing: '0.2em' }}>
+                    {label}
+                  </p>
+                  <p className="font-mono text-gray-200 text-xs group-hover:text-primary-400 transition-colors truncate">
+                    {value}
+                  </p>
+                </div>
+              </a>
+            ))}
+          </motion.div>
+
+          {/* Big CTA */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
+            <a
+              href="mailto:JohnRyanGomez812@gmail.com"
+              className="arcade-btn inline-block text-sm"
+            >
+              SEND MESSAGE
+            </a>
+          </motion.div>
         </div>
       </div>
     </section>
@@ -86,3 +123,4 @@ const Contact = () => {
 }
 
 export default Contact
+
