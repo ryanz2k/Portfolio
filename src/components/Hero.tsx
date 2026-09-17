@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { FaGithub, FaLinkedin, FaEnvelope } from 'react-icons/fa'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import profileImg from '../assets/profile.webp'
+import MagneticButton from './fx/MagneticButton'
+import { usePointerParallax, useRichMotion } from '../hooks/useMotionFX'
 
 const TYPED_ROLES = [
   'Full Stack Developer',
@@ -10,14 +12,14 @@ const TYPED_ROLES = [
   'Software Engineer',
 ]
 
-const TYPING_SPEED_MS  = 80
-const ERASE_SPEED_MS   = 40
-const PAUSE_AFTER_MS   = 1800
+const TYPING_SPEED_MS = 80
+const ERASE_SPEED_MS = 40
+const PAUSE_AFTER_MS = 1800
 
 const TypedRole = () => {
   const [displayText, setDisplayText] = useState('')
-  const [roleIndex,   setRoleIndex]   = useState(0)
-  const [isErasing,   setIsErasing]   = useState(false)
+  const [roleIndex, setRoleIndex] = useState(0)
+  const [isErasing, setIsErasing] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>()
 
   useEffect(() => {
@@ -59,28 +61,108 @@ const STATUS_LINES = [
   { label: 'CLASS',    value: 'FULL STACK DEV' },
 ]
 
+const SOCIALS = [
+  { icon: <FaGithub size={24} />,   href: 'https://github.com/ryanz2k',            label: 'GitHub' },
+  { icon: <FaLinkedin size={24} />, href: 'https://www.linkedin.com/in/ryanz2k/',  label: 'LinkedIn' },
+  { icon: <FaEnvelope size={24} />, href: 'mailto:JohnRyanGomez812@gmail.com',     label: 'Email' },
+]
+
+/** Letters drop in one at a time so the name assembles rather than just fading. */
+const AssembledWord = ({
+  text,
+  className,
+  startDelay = 0,
+}: {
+  text: string
+  className?: string
+  startDelay?: number
+}) => {
+  const reduced = useReducedMotion()
+
+  if (reduced) {
+    return <span className={className} data-text={text}>{text}</span>
+  }
+
+  return (
+    <span className={className} data-text={text}>
+      {text.split('').map((char, i) => (
+        <motion.span
+          key={`${char}-${i}`}
+          className="inline-block"
+          initial={{ opacity: 0, y: -28, rotateX: -90 }}
+          animate={{ opacity: 1, y: 0, rotateX: 0 }}
+          transition={{
+            delay: startDelay + i * 0.045,
+            duration: 0.5,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          style={{ transformPerspective: 400 }}
+        >
+          {/* A non-breaking space keeps the gap from collapsing between the
+              inline-block letters. */}
+          {char === ' ' ? ' ' : char}
+        </motion.span>
+      ))}
+    </span>
+  )
+}
+
 const Hero = () => {
-  const containerRef = useRef<HTMLDivElement>(null)
+  const sectionRef = useRef<HTMLElement>(null)
+  const rich = useRichMotion()
+  const reduced = useReducedMotion()
+  const pointer = usePointerParallax(1)
+
+  // Hero-specific scroll track: 0 at the top, 1 once the section has scrolled by.
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end start'],
+  })
+
+  // Each column leaves at its own rate — that difference is the parallax.
+  const textY = useTransform(scrollYProgress, [0, 1], [0, -90])
+  const imageY = useTransform(scrollYProgress, [0, 1], [0, 160])
+  const imageScale = useTransform(scrollYProgress, [0, 1], [1, 0.86])
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 0])
+  const contentBlur = useTransform(scrollYProgress, [0, 1], [0, 6])
+  const contentFilter = useTransform(contentBlur, (v) => `blur(${v}px)`)
+  const stripeY = useTransform(scrollYProgress, [0, 1], [0, 220])
+  const gridY = useTransform(scrollYProgress, [0, 1], [0, 120])
+  const hintOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0])
+
+  // Pointer-driven depth for the decorative layers.
+  const stripeX = useTransform(pointer.x, (v) => v * 40)
+  const frameX = useTransform(pointer.x, (v) => v * -24)
+  const frameY = useTransform(pointer.y, (v) => v * -18)
+  const tiltY = useTransform(pointer.x, (v) => (rich ? v * 14 : 0))
+  const tiltX = useTransform(pointer.y, (v) => (rich ? v * -14 : 0))
+  const frameXInverse = useTransform(frameX, (v) => -v)
+  const frameYInverse = useTransform(frameY, (v) => -v)
 
   return (
     <section
       id="hero"
-      ref={containerRef}
-      className="relative min-h-screen flex items-center justify-center overflow-hidden pt-14"
-      style={{ background: 'rgba(10,10,10,0.88)' }}
+      ref={sectionRef}
+      className="relative flex min-h-screen items-center justify-center overflow-hidden pt-14"
+      style={{ background: 'rgba(10,10,10,0.78)' }}
     >
-      {/* Red diagonal stripe decoration */}
-      <div
-        className="absolute inset-0 pointer-events-none"
+      {/* Diagonal wash, slowest moving layer in the hero */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
         style={{
-          background: 'linear-gradient(135deg, rgba(255,34,68,0.06) 0%, transparent 50%)',
+          y: stripeY,
+          x: stripeX,
+          background: 'linear-gradient(135deg, rgba(255,34,68,0.09) 0%, transparent 55%)',
         }}
       />
 
-      {/* Animated grid lines */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-10"
+      {/* Grid that drifts faster than the wash */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-10"
         style={{
+          y: gridY,
           backgroundImage: `
             linear-gradient(rgba(255,34,68,0.3) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255,34,68,0.3) 1px, transparent 1px)
@@ -89,209 +171,255 @@ const Hero = () => {
         }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
-        <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-16">
+      <motion.div
+        className="relative z-10 mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"
+        style={{ opacity: contentOpacity, filter: reduced ? undefined : contentFilter }}
+      >
+        <div className="flex flex-col-reverse items-center justify-between gap-16 md:flex-row">
 
-          {/* ── Text Column ── */}
-          <div className="flex-1 text-center md:text-left">
+          {/* ── Text column ── */}
+          <motion.div className="flex-1 text-center md:text-left" style={{ y: textY }}>
 
-            {/* Intro label */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
-              className="flex items-center gap-3 justify-center md:justify-start mb-6"
+              className="mb-6 flex items-center justify-center gap-3 md:justify-start"
             >
-              <div className="h-px w-8 bg-primary-500" />
-              <span className="font-pixel text-primary-500 text-xs tracking-widest">
+              <motion.div
+                className="h-px origin-left bg-primary-500"
+                initial={{ width: 0 }}
+                animate={{ width: 32 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              />
+              <span className="font-pixel text-xs tracking-widest text-primary-500">
                 PORTFOLIO
               </span>
             </motion.div>
 
-            {/* Glitch name */}
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="font-pixel text-3xl md:text-4xl lg:text-5xl text-white mb-3 leading-loose"
+            <h1
+              className="mb-3 font-pixel text-3xl leading-loose text-white md:text-4xl lg:text-5xl"
               style={{ textShadow: '0 0 30px rgba(255,34,68,0.3)' }}
             >
-              <span
-                className="glitch-text"
-                data-text="JOHN RYAN"
-              >
-                JOHN RYAN
-              </span>
+              <AssembledWord text="JOHN RYAN" className="glitch-text" startDelay={0.25} />
               <br />
-              <span
+              <AssembledWord
+                text="GOMEZ"
                 className="glitch-text text-primary-500"
-                data-text="GOMEZ"
-                style={{ textShadow: '0 0 20px rgba(255,34,68,0.6)' }}
-              >
-                GOMEZ
-              </span>
-            </motion.h1>
+                startDelay={0.65}
+              />
+            </h1>
 
-            {/* Typed role */}
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-              className="font-mono text-lg md:text-xl text-gray-400 mb-10 min-h-[2rem]"
+              transition={{ delay: 1 }}
+              className="mb-10 min-h-[2rem] font-mono text-lg text-gray-400 md:text-xl"
             >
               &gt; <TypedRole />
             </motion.p>
 
-            {/* RPG stat block */}
+            {/* RPG stat block — lines type in one after another */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45 }}
-              className="inline-block mb-10 text-left"
+              transition={{ delay: 1.15 }}
+              className="relative mb-10 inline-block overflow-hidden text-left"
               style={{
                 border: '1px solid rgba(255,34,68,0.3)',
                 background: 'rgba(255,34,68,0.04)',
                 padding: '16px 20px',
               }}
             >
-              {STATUS_LINES.map(({ label, value }) => (
-                <div key={label} className="flex items-center gap-4 mb-1 last:mb-0">
-                  <span className="font-pixel text-gray-500" style={{ fontSize: '9px', minWidth: '72px' }}>
+              {STATUS_LINES.map(({ label, value }, i) => (
+                <motion.div
+                  key={label}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.25 + i * 0.09 }}
+                  className="mb-1 flex items-center gap-4 last:mb-0"
+                >
+                  <span
+                    className="font-pixel text-gray-500"
+                    style={{ fontSize: '9px', minWidth: '72px' }}
+                  >
                     {label}
                   </span>
-                  <span className="font-mono text-xs text-accent-500">
-                    :: {value}
-                  </span>
-                </div>
+                  <span className="font-mono text-xs text-accent-500">:: {value}</span>
+                </motion.div>
               ))}
+
+              {/* Slow scan sweeping down the stat block */}
+              {!reduced && (
+                <motion.div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-0 h-12"
+                  style={{
+                    background:
+                      'linear-gradient(180deg, transparent, rgba(255,224,0,0.07), transparent)',
+                  }}
+                  animate={{ y: ['-100%', '400%'] }}
+                  transition={{ duration: 4.5, repeat: Infinity, ease: 'linear', delay: 2 }}
+                />
+              )}
             </motion.div>
 
-            {/* Social links + CTA */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.55 }}
-              className="flex items-center gap-6 justify-center md:justify-start flex-wrap"
+              transition={{ delay: 1.6 }}
+              className="flex flex-wrap items-center justify-center gap-6 md:justify-start"
             >
-              <a href="#contact" className="arcade-btn">
+              <MagneticButton href="#contact" className="arcade-btn">
                 CONTACT ME
-              </a>
+              </MagneticButton>
 
               <div className="flex items-center gap-4">
-                <a
-                  href="https://github.com/ryanz2k"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-500 hover:text-primary-400 transition-colors"
-                  aria-label="GitHub"
-                  style={{ transition: 'color 0.15s, text-shadow 0.15s' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.textShadow = '0 0 8px rgba(255,34,68,0.7)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.textShadow = 'none')}
-                >
-                  <FaGithub size={24} />
-                </a>
-                <a
-                  href="https://www.linkedin.com/in/ryanz2k/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-500 hover:text-primary-400 transition-colors"
-                  aria-label="LinkedIn"
-                  onMouseEnter={(e) => (e.currentTarget.style.textShadow = '0 0 8px rgba(255,34,68,0.7)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.textShadow = 'none')}
-                >
-                  <FaLinkedin size={24} />
-                </a>
-                <a
-                  href="mailto:JohnRyanGomez812@gmail.com"
-                  className="text-gray-500 hover:text-primary-400 transition-colors"
-                  aria-label="Email"
-                  onMouseEnter={(e) => (e.currentTarget.style.textShadow = '0 0 8px rgba(255,34,68,0.7)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.textShadow = 'none')}
-                >
-                  <FaEnvelope size={24} />
-                </a>
+                {SOCIALS.map(({ icon, href, label }) => (
+                  <motion.a
+                    key={label}
+                    href={href}
+                    target={href.startsWith('http') ? '_blank' : undefined}
+                    rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                    aria-label={label}
+                    className="text-gray-500 transition-colors hover:text-primary-400"
+                    whileHover={{ y: -4, scale: 1.15, filter: 'drop-shadow(0 0 8px rgba(255,34,68,0.8))' }}
+                    whileTap={{ scale: 0.9 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                  >
+                    {icon}
+                  </motion.a>
+                ))}
               </div>
             </motion.div>
-          </div>
+          </motion.div>
 
-          {/* ── Profile Image ── */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="relative flex-shrink-0"
-          >
-            {/* Offset decorative border */}
-            <div
-              className="absolute -top-3 -left-3 w-full h-full border border-primary-500/40"
-              style={{ zIndex: 0 }}
-            />
-            <div
-              className="absolute -bottom-3 -right-3 w-full h-full border border-accent-500/30"
-              style={{ zIndex: 0 }}
-            />
-
-            {/* Glow behind image */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: 'radial-gradient(ellipse at center, rgba(255,34,68,0.25) 0%, transparent 70%)',
-                filter: 'blur(20px)',
-                zIndex: 0,
-              }}
-            />
-
-            <div
-              className="relative overflow-hidden"
-              style={{
-                border: '2px solid rgba(255,34,68,0.6)',
-                clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))',
-                zIndex: 1,
-              }}
+          {/* ── Profile image ──
+              Outer element owns the scroll parallax, inner one owns the
+              entrance, so neither fights the other over `scale`. */}
+          <motion.div className="flex-shrink-0" style={{ y: imageY, scale: imageScale }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="relative"
             >
-              <img
-                src={profileImg}
-                alt="John Ryan Gomez"
-                className="w-56 h-56 md:w-72 md:h-72 object-cover"
-                style={{ filter: 'contrast(1.05) saturate(0.9)' }}
+              {/* Offset frames drift with the pointer, the image itself does not */}
+              <motion.div
+                aria-hidden
+                className="absolute -left-3 -top-3 h-full w-full border border-primary-500/40"
+                style={{ x: frameX, y: frameY, zIndex: 0 }}
               />
-              {/* Red scanline overlay on image */}
-              <div
-                className="absolute inset-0 pointer-events-none"
+              <motion.div
+                aria-hidden
+                className="absolute -bottom-3 -right-3 h-full w-full border border-accent-500/30"
+                style={{ x: frameXInverse, y: frameYInverse, zIndex: 0 }}
+              />
+  
+              {/* Breathing glow */}
+              <motion.div
+                aria-hidden
+                className="pointer-events-none absolute inset-0"
                 style={{
-                  background: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,34,68,0.04) 3px, rgba(255,34,68,0.04) 4px)',
+                  background: 'radial-gradient(ellipse at center, rgba(255,34,68,0.28) 0%, transparent 70%)',
+                  filter: 'blur(24px)',
+                  zIndex: 0,
                 }}
+                animate={reduced ? undefined : { scale: [1, 1.12, 1], opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
               />
-            </div>
-
-            {/* Corner accent pip */}
-            <div
-              className="absolute -top-1 -right-1 w-3 h-3 bg-primary-500"
-              style={{ boxShadow: '0 0 8px rgba(255,34,68,0.8)', zIndex: 2 }}
-            />
-            <div
-              className="absolute -bottom-1 -left-1 w-3 h-3 bg-accent-500"
-              style={{ boxShadow: '0 0 8px rgba(255,224,0,0.6)', zIndex: 2 }}
-            />
+  
+              {/* Portrait, tilted by the pointer */}
+              <motion.div
+                className="relative overflow-hidden"
+                style={{
+                  rotateX: tiltX,
+                  rotateY: tiltY,
+                  transformPerspective: 900,
+                  border: '2px solid rgba(255,34,68,0.6)',
+                  clipPath:
+                    'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))',
+                  zIndex: 1,
+                }}
+              >
+                <img
+                  src={profileImg}
+                  alt="John Ryan Gomez"
+                  className="h-56 w-56 object-cover md:h-72 md:w-72"
+                  style={{ filter: 'contrast(1.05) saturate(0.9)' }}
+                />
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    background:
+                      'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,34,68,0.04) 3px, rgba(255,34,68,0.04) 4px)',
+                  }}
+                />
+                {/* Scan bar travelling down the portrait */}
+                {!reduced && (
+                  <motion.div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 h-16"
+                    style={{
+                      background:
+                        'linear-gradient(180deg, transparent, rgba(255,34,68,0.16), transparent)',
+                    }}
+                    animate={{ y: ['-120%', '520%'] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
+                  />
+                )}
+              </motion.div>
+  
+              {/* Corner pips */}
+              <motion.div
+                aria-hidden
+                className="absolute -right-1 -top-1 h-3 w-3 bg-primary-500"
+                style={{ boxShadow: '0 0 8px rgba(255,34,68,0.8)', zIndex: 2 }}
+                animate={reduced ? undefined : { opacity: [1, 0.35, 1] }}
+                transition={{ duration: 1.6, repeat: Infinity }}
+              />
+              <motion.div
+                aria-hidden
+                className="absolute -bottom-1 -left-1 h-3 w-3 bg-accent-500"
+                style={{ boxShadow: '0 0 8px rgba(255,224,0,0.6)', zIndex: 2 }}
+                animate={reduced ? undefined : { opacity: [0.35, 1, 0.35] }}
+                transition={{ duration: 1.6, repeat: Infinity }}
+              />
+            </motion.div>
           </motion.div>
         </div>
+      </motion.div>
 
-        {/* Scroll hint */}
+      {/* Scroll hint, pinned to the section rather than the content.
+          Scroll fade lives on the outer element, the delayed entrance on the
+          inner one — two elements so they don't both drive `opacity`. */}
+      <motion.div
+        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        style={{ opacity: hintOpacity }}
+      >
         <motion.div
+          className="flex flex-col items-center gap-2"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+          transition={{ delay: 2 }}
         >
-          <span className="font-pixel text-gray-600" style={{ fontSize: '8px', letterSpacing: '0.2em' }}>
+          <span
+            className="font-pixel text-gray-600"
+            style={{ fontSize: '8px', letterSpacing: '0.2em' }}
+          >
             SCROLL DOWN
           </span>
-          <div className="w-px h-10 bg-gradient-to-b from-primary-500 to-transparent animate-pulse" />
+          <motion.div
+            className="h-10 w-px bg-gradient-to-b from-primary-500 to-transparent"
+            animate={reduced ? undefined : { scaleY: [0.4, 1, 0.4], opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ originY: 0 }}
+          />
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   )
 }
 
 export default Hero
-

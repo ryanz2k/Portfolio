@@ -1,7 +1,9 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
-import { FaExternalLinkAlt, FaGithub, FaGamepad, FaMobileAlt, FaMusic, FaGraduationCap } from 'react-icons/fa'
-
+import { useRef } from 'react'
+import {
+  FaExternalLinkAlt, FaGithub, FaGamepad, FaMobileAlt, FaMusic, FaGraduationCap,
+} from 'react-icons/fa'
 import { motion } from 'framer-motion'
+
 import elGlamImg from '../assets/el-glam-pos.webp'
 import elHealthImg from '../assets/el-health.webp'
 import smartquestImg from '../assets/smartquest.webp'
@@ -10,9 +12,14 @@ import lenkaImg from '../assets/lenka wordpress.webp'
 import petjetImg from '../assets/petjet shopify.webp'
 import zonafloorsImg from '../assets/zonafloors wordpress.webp'
 
-const SECTION_NUMBER = '03'
+import SectionShell from './fx/SectionShell'
+import TiltCard from './fx/TiltCard'
+import HoverPreview from './fx/HoverPreview'
+import { useHoverPreview } from '../hooks/useHoverPreview'
+import type { PreviewSize } from '../hooks/useHoverPreview'
+import { useParallaxY } from '../hooks/useMotionFX'
 
-interface HoverableProject {
+interface FeaturedProject {
   title: string
   subtitle: string
   description: string
@@ -34,7 +41,9 @@ interface OtherProject {
   previewImage?: string
 }
 
-const FEATURED_PROJECTS: HoverableProject[] = [
+const PREVIEW_SIZE: PreviewSize = { width: 480, height: 300 }
+
+const FEATURED_PROJECTS: FeaturedProject[] = [
   {
     title: 'El Glam POS',
     subtitle: 'Point-of-Sale System',
@@ -68,8 +77,7 @@ const FEATURED_PROJECTS: HoverableProject[] = [
   },
 ]
 
-// WordPress & Shopify projects
-const WORDPRESS_PROJECTS: HoverableProject[] = [
+const WORDPRESS_PROJECTS: FeaturedProject[] = [
   {
     title: 'Zona Floors',
     subtitle: 'Flooring Contractor',
@@ -144,390 +152,256 @@ const OTHER_PROJECTS: OtherProject[] = [
   },
 ]
 
-// ── Cursor-following preview — uses fixed positioning so it NEVER clips ──
-const HoverableCard = ({
-  project,
-  index,
-  previewSize = { width: 320, height: 200 },
+/** Small link cluster shared by both card types. */
+const ProjectLinks = ({
+  github,
+  link,
+  title,
+  size = 18,
 }: {
-  project: HoverableProject
-  index: number
-  previewSize?: { width: number; height: number }
-}) => {
-  const [isHovered, setIsHovered] = useState(false)
-  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 })
+  github?: string
+  link?: string
+  title: string
+  size?: number
+}) => (
+  <div className="relative z-10 flex flex-shrink-0 items-center gap-3">
+    {github && (
+      <motion.a
+        href={github}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`${title} on GitHub`}
+        className="text-gray-500 transition-colors hover:text-primary-400"
+        whileHover={{ scale: 1.25, rotate: -8 }}
+        whileTap={{ scale: 0.9 }}
+      >
+        <FaGithub size={size} />
+      </motion.a>
+    )}
+    {link && (
+      <motion.a
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`${title} live site`}
+        className="text-gray-500 transition-colors hover:text-primary-400"
+        whileHover={{ scale: 1.25, rotate: 8 }}
+        whileTap={{ scale: 0.9 }}
+      >
+        <FaExternalLinkAlt size={size - 3} />
+      </motion.a>
+    )}
+  </div>
+)
 
-  const cardRef = useRef<HTMLDivElement>(null)
+const TechTags = ({ items }: { items: string[] }) => (
+  <div className="mt-auto flex flex-wrap gap-2">
+    {items.map((tech, i) => (
+      <motion.span
+        key={tech}
+        className="tech-tag"
+        initial={{ opacity: 0, y: 8 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.3, delay: 0.25 + i * 0.05 }}
+        whileHover={{ y: -3, borderColor: 'rgba(255,34,68,0.9)' }}
+      >
+        {tech}
+      </motion.span>
+    ))}
+  </div>
+)
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    setCursorPos({ x: e.clientX, y: e.clientY })
-  }, [])
+const PreviewHint = () => (
+  <div className="mt-4 flex items-center gap-2 opacity-50 transition-opacity group-hover:opacity-0">
+    <motion.span
+      className="h-1.5 w-1.5 bg-primary-500"
+      animate={{ opacity: [1, 0.2, 1] }}
+      transition={{ duration: 1.4, repeat: Infinity }}
+    />
+    <span className="font-mono text-xs text-gray-600">hover to preview</span>
+  </div>
+)
 
-  useEffect(() => {
-    if (!isHovered) return
-    const checkScrollBounds = () => {
-      if (!cardRef.current) return
-      const rect = cardRef.current.getBoundingClientRect()
-      const inX = cursorPos.x >= rect.left && cursorPos.x <= rect.right
-      const inY = cursorPos.y >= rect.top && cursorPos.y <= rect.bottom
-      if (!inX || !inY) {
-        setIsHovered(false)
-      }
-    }
-    window.addEventListener('scroll', checkScrollBounds, { passive: true })
-    return () => window.removeEventListener('scroll', checkScrollBounds)
-  }, [isHovered, cursorPos])
-
-  // Offset the preview so it doesn't sit directly on the cursor
-  const OFFSET_X = 28
-  const OFFSET_Y = -previewSize.height / 2
-
-  // Clamp to viewport edges
-  const previewLeft = cursorPos.x + OFFSET_X
-  const previewTop = Math.max(
-    8,
-    Math.min(cursorPos.y + OFFSET_Y, window.innerHeight - previewSize.height - 8)
-  )
+const FeaturedCard = ({ project, index }: { project: FeaturedProject; index: number }) => {
+  const { cardRef, isHovered, left, top, handlers } = useHoverPreview(PREVIEW_SIZE)
 
   return (
     <>
-      {/* Portal-like fixed preview — never clipped by parent overflow */}
-      {isHovered && (
-        <div
-          style={{
-            position: 'fixed',
-            left: previewLeft,
-            top: previewTop,
-            width: previewSize.width,
-            height: previewSize.height,
-            zIndex: 9000,
-            pointerEvents: 'none',
-            border: '2px solid rgba(255,34,68,0.8)',
-            boxShadow: '0 0 40px rgba(255,34,68,0.4), 0 16px 48px rgba(0,0,0,0.8)',
-            overflow: 'hidden',
-            transition: 'opacity 0.15s ease',
-            backgroundColor: '#000',
-          }}
-        >
-          <img
-            src={project.previewImage}
-            alt={`${project.title} preview`}
-            style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-          />
-          {/* Scanline overlay */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background:
-                'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,34,68,0.05) 3px, rgba(255,34,68,0.05) 4px)',
-              pointerEvents: 'none',
-            }}
-          />
-          {/* Title badge */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              padding: '8px 12px',
-              background: 'rgba(0,0,0,0.75)',
-              borderTop: '1px solid rgba(255,34,68,0.4)',
-            }}
-          >
-            <p className="font-pixel text-white" style={{ fontSize: '8px', letterSpacing: '0.1em' }}>
-              {project.title}
+      <HoverPreview
+        image={project.previewImage}
+        title={project.title}
+        visible={isHovered}
+        left={left}
+        top={top}
+        size={PREVIEW_SIZE}
+      />
+
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.6, delay: index * 0.12, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <TiltCard max={8} lift={14} className="h-full" {...handlers}>
+          <div ref={cardRef} className="arcade-card group flex h-full flex-col p-6">
+            <div className="mb-4 flex items-start justify-between">
+              <div>
+                <span
+                  className="mb-1 block font-pixel text-accent-500/70"
+                  style={{ fontSize: '8px', letterSpacing: '0.2em' }}
+                >
+                  {project.category}
+                </span>
+                <h3 className="font-pixel text-xs tracking-wide text-white transition-colors group-hover:text-primary-400">
+                  {project.title}
+                </h3>
+                <p className="mt-1 font-mono text-xs text-primary-400">{project.subtitle}</p>
+              </div>
+              <ProjectLinks github={project.github} link={project.link} title={project.title} />
+            </div>
+
+            <p className="mb-5 flex-1 font-mono text-xs leading-relaxed text-gray-400">
+              {project.description}
             </p>
+
+            <TechTags items={project.technologies} />
+            <PreviewHint />
           </div>
-        </div>
+        </TiltCard>
+      </motion.div>
+    </>
+  )
+}
+
+const OtherCard = ({ project, index }: { project: OtherProject; index: number }) => {
+  const { cardRef, isHovered, left, top, handlers } = useHoverPreview(PREVIEW_SIZE)
+
+  return (
+    <>
+      {project.previewImage && (
+        <HoverPreview
+          image={project.previewImage}
+          title={project.title}
+          visible={isHovered}
+          left={left}
+          top={top}
+          size={PREVIEW_SIZE}
+        />
       )}
 
-      {/* The actual card */}
       <motion.div
-        ref={cardRef}
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 28 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5, delay: index * 0.1 }}
-        className="arcade-card p-6 flex flex-col group"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onMouseMove={handleMouseMove}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.5, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <span
-              className="font-pixel text-accent-500/70 block mb-1"
-              style={{ fontSize: '8px', letterSpacing: '0.2em' }}
-            >
+        <TiltCard max={6} lift={10} className="h-full" {...handlers}>
+          <div ref={cardRef} className="arcade-card group relative flex h-full flex-col p-5">
+            <div className="mb-3 flex items-start justify-between">
+              <motion.div
+                className="text-2xl text-primary-500"
+                whileHover={{ scale: 1.25, rotate: -10 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 12 }}
+              >
+                {project.icon}
+              </motion.div>
+              <ProjectLinks
+                github={project.github}
+                link={project.link}
+                title={project.title}
+                size={15}
+              />
+            </div>
+
+            <span className="mb-2 font-pixel text-accent-500/50" style={{ fontSize: '8px' }}>
               {project.category}
             </span>
-            <h3 className="font-pixel text-white text-xs tracking-wide group-hover:text-primary-400 transition-colors">
+            <h3 className="mb-2 font-mono text-sm font-bold text-white transition-colors group-hover:text-primary-400">
               {project.title}
             </h3>
-            <p className="font-mono text-primary-400 text-xs mt-1">{project.subtitle}</p>
-          </div>
-          <div className="flex items-center gap-3 ml-4 flex-shrink-0">
-            {project.github && (
-              <a
-                href={project.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-primary-400 transition-colors"
-                aria-label={`${project.title} GitHub`}
-              >
-                <FaGithub size={18} />
-              </a>
-            )}
-            {project.link && (
-              <a
-                href={project.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-primary-400 transition-colors"
-                aria-label={`${project.title} live link`}
-              >
-                <FaExternalLinkAlt size={15} />
-              </a>
-            )}
-          </div>
-        </div>
-
-        <p className="font-mono text-gray-400 text-xs leading-relaxed mb-5 flex-1">
-          {project.description}
-        </p>
-
-        <div className="flex flex-wrap gap-2 mt-auto">
-          {project.technologies.map((tech) => (
-            <span key={tech} className="tech-tag">{tech}</span>
-          ))}
-        </div>
-
-        {/* Hover hint pill */}
-        <div className="mt-4 flex items-center gap-2 opacity-50 group-hover:opacity-0 transition-opacity">
-          <div className="w-1.5 h-1.5 bg-primary-500 animate-pulse" />
-          <span className="font-mono text-gray-600 text-xs">hover to preview</span>
-        </div>
-      </motion.div>
-    </>
-  )
-}
-
-const OtherProjectCard = ({ project, index }: { project: OtherProject; index: number }) => {
-  const [isHovered, setIsHovered] = useState(false)
-  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 })
-
-  const cardRef = useRef<HTMLDivElement>(null)
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    setCursorPos({ x: e.clientX, y: e.clientY })
-  }, [])
-
-  useEffect(() => {
-    if (!isHovered) return
-    const checkScrollBounds = () => {
-      if (!cardRef.current) return
-      const rect = cardRef.current.getBoundingClientRect()
-      const inX = cursorPos.x >= rect.left && cursorPos.x <= rect.right
-      const inY = cursorPos.y >= rect.top && cursorPos.y <= rect.bottom
-      if (!inX || !inY) {
-        setIsHovered(false)
-      }
-    }
-    window.addEventListener('scroll', checkScrollBounds, { passive: true })
-    return () => window.removeEventListener('scroll', checkScrollBounds)
-  }, [isHovered, cursorPos])
-
-  const previewSize = { width: 480, height: 300 }
-  const OFFSET_X = 28
-  const OFFSET_Y = -previewSize.height / 2
-
-  const previewLeft = cursorPos.x + OFFSET_X
-  const previewTop = Math.max(8, Math.min(cursorPos.y + OFFSET_Y, window.innerHeight - previewSize.height - 8))
-
-  return (
-    <>
-      {isHovered && project.previewImage && (
-        <div
-          style={{
-            position: 'fixed',
-            left: previewLeft,
-            top: previewTop,
-            width: previewSize.width,
-            height: previewSize.height,
-            zIndex: 9000,
-            pointerEvents: 'none',
-            border: '2px solid rgba(255,34,68,0.8)',
-            boxShadow: '0 0 40px rgba(255,34,68,0.4), 0 16px 48px rgba(0,0,0,0.8)',
-            overflow: 'hidden',
-            transition: 'opacity 0.15s ease',
-            backgroundColor: '#000',
-          }}
-        >
-          <img
-            src={project.previewImage}
-            alt={`${project.title} preview`}
-            style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background:
-                'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,34,68,0.05) 3px, rgba(255,34,68,0.05) 4px)',
-              pointerEvents: 'none',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              padding: '8px 12px',
-              background: 'rgba(0,0,0,0.75)',
-              borderTop: '1px solid rgba(255,34,68,0.4)',
-            }}
-          >
-            <p className="font-pixel text-white" style={{ fontSize: '8px', letterSpacing: '0.1em' }}>
-              {project.title}
+            <p className="mb-4 flex-1 font-mono text-xs leading-relaxed text-gray-500">
+              {project.description}
             </p>
+
+            <TechTags items={project.technologies} />
+            {project.previewImage && <PreviewHint />}
           </div>
-        </div>
-      )}
-      <motion.div
-        ref={cardRef}
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.4, delay: index * 0.07 }}
-        className="arcade-card p-5 flex flex-col group relative"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onMouseMove={handleMouseMove}
-      >
-        <div className="flex items-start justify-between mb-3">
-          <div className="text-primary-500 text-2xl group-hover:scale-110 transition-transform duration-150">
-            {project.icon}
-          </div>
-          <div className="flex gap-3 relative z-10">
-            {project.github && (
-              <a href={project.github} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-primary-400 transition-colors">
-                <FaGithub size={15} />
-              </a>
-            )}
-            {project.link && (
-              <a href={project.link} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-primary-400 transition-colors">
-                <FaExternalLinkAlt size={13} />
-              </a>
-            )}
-          </div>
-        </div>
-        <span className="font-pixel text-accent-500/50 mb-2" style={{ fontSize: '8px' }}>
-          {project.category}
-        </span>
-        <h3 className="font-mono text-white text-sm font-bold mb-2 group-hover:text-primary-400 transition-colors">
-          {project.title}
-        </h3>
-        <p className="font-mono text-gray-500 text-xs leading-relaxed mb-4 flex-1">
-          {project.description}
-        </p>
-        <div className="flex flex-wrap gap-1.5 mt-auto">
-          {project.technologies.map((tech) => (
-            <span key={tech} className="tech-tag">{tech}</span>
-          ))}
-        </div>
-        {project.previewImage && (
-          <div className="mt-4 flex items-center gap-2 opacity-50 group-hover:opacity-0 transition-opacity">
-            <div className="w-1.5 h-1.5 bg-primary-500 animate-pulse" />
-            <span className="font-mono text-gray-600 text-xs">hover to preview</span>
-          </div>
-        )}
+        </TiltCard>
       </motion.div>
     </>
   )
 }
 
-const SectionLabel = ({ label }: { label: string }) => (
+const GroupLabel = ({ label, muted = false }: { label: string; muted?: boolean }) => (
   <motion.div
-    initial={{ opacity: 0 }}
-    whileInView={{ opacity: 1 }}
+    initial={{ opacity: 0, x: -20 }}
+    whileInView={{ opacity: 1, x: 0 }}
     viewport={{ once: true }}
-    className="flex items-center gap-3 mb-8"
+    transition={{ duration: 0.5 }}
+    className="mb-8 flex items-center gap-3"
   >
-    <div className="w-2 h-2 bg-primary-500 animate-pulse" />
-    <span className="font-pixel text-primary-500/70" style={{ fontSize: '9px', letterSpacing: '0.2em' }}>
+    <motion.div
+      className={`h-2 w-2 ${muted ? 'bg-gray-600' : 'bg-primary-500'}`}
+      animate={muted ? undefined : { opacity: [1, 0.3, 1] }}
+      transition={{ duration: 1.6, repeat: Infinity }}
+    />
+    <span
+      className={`font-pixel ${muted ? 'text-gray-500' : 'text-primary-500/70'}`}
+      style={{ fontSize: '9px', letterSpacing: '0.2em' }}
+    >
       {label}
     </span>
-    <div className="h-px flex-1 bg-primary-500/20" />
+    <motion.div
+      className={`h-px flex-1 origin-left ${muted ? 'bg-gray-800' : 'bg-primary-500/20'}`}
+      initial={{ scaleX: 0 }}
+      whileInView={{ scaleX: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+    />
   </motion.div>
 )
 
 const Projects = () => {
+  const featuredRef = useRef<HTMLDivElement>(null)
+  const wordpressRef = useRef<HTMLDivElement>(null)
+
+  // Opposing drift between the two featured grids adds depth between blocks.
+  const featuredY = useParallaxY(featuredRef, 26)
+  const wordpressY = useParallaxY(wordpressRef, -22)
+
   return (
-    <section id="projects" className="py-24" style={{ background: 'rgba(15,15,15,0.85)' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <SectionShell id="projects" number="03" title="PROJECTS" tone="dim">
+      <GroupLabel label="FEATURED — HOVER TO PREVIEW" />
+      <motion.div
+        ref={featuredRef}
+        style={{ y: featuredY }}
+        className="mb-20 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+      >
+        {FEATURED_PROJECTS.map((project, i) => (
+          <FeaturedCard key={project.title} project={project} index={i} />
+        ))}
+      </motion.div>
 
-        {/* Section header */}
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="flex items-center gap-4 mb-14"
-        >
-          <span className="font-pixel text-primary-500/50" style={{ fontSize: '10px' }}>
-            {SECTION_NUMBER}.
-          </span>
-          <h2 className="section-heading">PROJECTS</h2>
-          <div className="h-px flex-1 bg-gradient-to-r from-primary-500/40 to-transparent" />
-        </motion.div>
+      <GroupLabel label="WORDPRESS & SHOPIFY — HOVER TO PREVIEW" />
+      <motion.div
+        ref={wordpressRef}
+        style={{ y: wordpressY }}
+        className="mb-20 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+      >
+        {WORDPRESS_PROJECTS.map((project, i) => (
+          <FeaturedCard key={project.title} project={project} index={i} />
+        ))}
+      </motion.div>
 
-        {/* ── Featured ── */}
-        <SectionLabel label="FEATURED — HOVER TO PREVIEW" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
-          {FEATURED_PROJECTS.map((project, i) => (
-            <HoverableCard
-              key={project.title}
-              project={project}
-              index={i}
-              previewSize={{ width: 480, height: 300 }}
-            />
-          ))}
-        </div>
-
-        {/* ── WordPress & Shopify ── */}
-        <SectionLabel label="WORDPRESS & SHOPIFY — HOVER TO PREVIEW" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
-          {WORDPRESS_PROJECTS.map((project, i) => (
-            <HoverableCard
-              key={project.title}
-              project={project}
-              index={i}
-              previewSize={{ width: 480, height: 300 }}
-            />
-          ))}
-        </div>
-
-        {/* ── Others ── */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-2 h-2 bg-gray-600" />
-          <span className="font-pixel text-gray-500" style={{ fontSize: '9px', letterSpacing: '0.2em' }}>
-            OTHER PROJECTS
-          </span>
-          <div className="h-px flex-1 bg-gray-800" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {OTHER_PROJECTS.map((project, i) => (
-            <OtherProjectCard key={project.title} project={project} index={i} />
-          ))}
-        </div>
-
+      <GroupLabel label="OTHER PROJECTS" muted />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {OTHER_PROJECTS.map((project, i) => (
+          <OtherCard key={project.title} project={project} index={i} />
+        ))}
       </div>
-    </section>
+    </SectionShell>
   )
 }
 
 export default Projects
-

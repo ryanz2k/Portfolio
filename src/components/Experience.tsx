@@ -1,6 +1,7 @@
-import { motion } from 'framer-motion'
-
-const SECTION_NUMBER = '02'
+import { useRef } from 'react'
+import { motion, useScroll, useSpring } from 'framer-motion'
+import SectionShell from './fx/SectionShell'
+import TiltCard from './fx/TiltCard'
 
 interface ExperienceItem {
   title: string
@@ -56,67 +57,73 @@ const TYPE_STYLES: Record<ExperienceItem['type'], { color: string; glow: string 
 }
 
 const Experience = () => {
+  const timelineRef = useRef<HTMLDivElement>(null)
+
+  // The rail fills in step with how far the timeline has been scrolled through.
+  const { scrollYProgress } = useScroll({
+    target: timelineRef,
+    offset: ['start 0.8', 'end 0.6'],
+  })
+  const railScale = useSpring(scrollYProgress, { stiffness: 90, damping: 26, mass: 0.4 })
+
   return (
-    <section id="experience" className="py-24" style={{ background: 'rgba(10,10,10,0.88)' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <SectionShell id="experience" number="02" title="EXPERIENCE" tone="base">
+      <div ref={timelineRef} className="relative mx-auto max-w-3xl">
 
-        {/* Section header */}
+        {/* Track and the glowing fill that follows the scroll */}
+        <div
+          aria-hidden
+          className="absolute bottom-6 left-[5px] top-2 w-px"
+          style={{ background: 'rgba(255,34,68,0.12)' }}
+        />
         <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="flex items-center gap-4 mb-16"
-        >
-          <span className="font-pixel text-primary-500/50" style={{ fontSize: '10px' }}>
-            {SECTION_NUMBER}.
-          </span>
-          <h2 className="section-heading">EXPERIENCE</h2>
-          <div className="h-px flex-1 bg-gradient-to-r from-primary-500/40 to-transparent" />
-        </motion.div>
+          aria-hidden
+          className="absolute bottom-6 left-[5px] top-2 w-px origin-top"
+          style={{
+            scaleY: railScale,
+            background: 'linear-gradient(to bottom, #FF2244, rgba(255,34,68,0.25))',
+            boxShadow: '0 0 10px rgba(255,34,68,0.6)',
+          }}
+        />
 
-        <div className="max-w-3xl mx-auto">
-          {EXPERIENCES.map((exp, index) => {
-            const typeStyle = TYPE_STYLES[exp.type]
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.12 }}
-                className="relative flex gap-6 mb-12 last:mb-0"
-              >
-                {/* Timeline connector */}
-                <div className="flex flex-col items-center flex-shrink-0">
-                  <div
-                    className="w-3 h-3 flex-shrink-0 mt-1"
-                    style={{
-                      background: '#FF2244',
-                      boxShadow: '0 0 10px rgba(255,34,68,0.7)',
-                      clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
-                    }}
-                  />
-                  {index < EXPERIENCES.length - 1 && (
-                    <div
-                      className="w-px flex-1 mt-2"
-                      style={{
-                        background: 'linear-gradient(to bottom, rgba(255,34,68,0.5), rgba(255,34,68,0.05))',
-                        minHeight: '60px',
-                      }}
-                    />
-                  )}
-                </div>
+        {EXPERIENCES.map((exp, index) => {
+          const typeStyle = TYPE_STYLES[exp.type]
+          return (
+            <motion.div
+              key={exp.title}
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.6, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+              className="relative mb-12 flex gap-6 last:mb-0"
+            >
+              {/* Timeline node */}
+              <div className="flex flex-shrink-0 flex-col items-center">
+                <motion.div
+                  className="mt-1 h-3 w-3 flex-shrink-0"
+                  style={{
+                    background: '#FF2244',
+                    clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+                  }}
+                  initial={{ scale: 0, rotate: -90 }}
+                  whileInView={{
+                    scale: 1,
+                    rotate: 0,
+                    boxShadow: '0 0 14px rgba(255,34,68,0.9)',
+                  }}
+                  viewport={{ once: true, amount: 0.6 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 16, delay: index * 0.1 }}
+                />
+              </div>
 
-                {/* Card */}
-                <div className="arcade-card p-6 flex-1 group">
-                  {/* Header */}
-                  <div className="flex flex-wrap items-start justify-between gap-2 mb-4">
+              <TiltCard max={5} className="flex-1">
+                <div className="arcade-card group h-full p-6">
+                  <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
                     <div>
-                      <h3 className="font-pixel text-white text-xs tracking-wider mb-2">
+                      <h3 className="mb-2 font-pixel text-xs tracking-wider text-white transition-colors group-hover:text-primary-300">
                         {exp.title}
                       </h3>
-                      <p className="font-mono text-primary-400 text-sm">{exp.company}</p>
+                      <p className="font-mono text-sm text-primary-400">{exp.company}</p>
                     </div>
                     <div className="flex flex-col items-end gap-1">
                       <span
@@ -130,28 +137,33 @@ const Experience = () => {
                       >
                         {exp.type}
                       </span>
-                      <span className="font-mono text-gray-500 text-xs">{exp.period}</span>
+                      <span className="font-mono text-xs text-gray-500">{exp.period}</span>
                     </div>
                   </div>
 
-                  {/* Bullet list */}
                   <ul className="space-y-2">
                     {exp.description.map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <span className="text-primary-500 mt-0.5 flex-shrink-0 font-mono text-xs">▸</span>
-                        <span className="font-mono text-gray-400 text-xs leading-relaxed">{item}</span>
-                      </li>
+                      <motion.li
+                        key={item}
+                        initial={{ opacity: 0, x: -12 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true, amount: 0.5 }}
+                        transition={{ duration: 0.4, delay: index * 0.1 + 0.2 + idx * 0.07 }}
+                        className="flex items-start gap-3"
+                      >
+                        <span className="mt-0.5 flex-shrink-0 font-mono text-xs text-primary-500">▸</span>
+                        <span className="font-mono text-xs leading-relaxed text-gray-400">{item}</span>
+                      </motion.li>
                     ))}
                   </ul>
                 </div>
-              </motion.div>
-            )
-          })}
-        </div>
+              </TiltCard>
+            </motion.div>
+          )
+        })}
       </div>
-    </section>
+    </SectionShell>
   )
 }
 
 export default Experience
-

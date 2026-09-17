@@ -5,23 +5,41 @@
 @tailwind utilities;
 
 @layer base {
-  * {
+
+  /* The native cursor is only hidden once the custom reticle has actually
+     mounted, which it refuses to do on touch devices. */
+  html.custom-cursor,
+  html.custom-cursor * {
     cursor: none !important;
   }
 
   html {
     scroll-behavior: smooth;
+    /* Keeps anchored sections clear of the fixed navbar. */
+    scroll-padding-top: 5rem;
     background-color: #0a0a0a;
   }
 
   body {
     @apply bg-arcade-bg text-gray-100 font-mono;
+    overflow-x: hidden;
     /* CRT scanline overlay */
     background-image: repeating-linear-gradient(0deg,
         transparent,
         transparent 2px,
         rgba(0, 0, 0, 0.08) 2px,
         rgba(0, 0, 0, 0.08) 4px);
+  }
+
+  ::selection {
+    background: rgba(255, 34, 68, 0.35);
+    color: #fff;
+  }
+
+  /* Visible focus ring — doubly important while the native cursor is hidden. */
+  :focus-visible {
+    outline: 2px solid #FFE000;
+    outline-offset: 2px;
   }
 
   ::-webkit-scrollbar {
@@ -49,20 +67,41 @@
     @apply inline-block font-pixel text-xs text-accent-500 tracking-widest mb-2;
   }
 
-  /* Section heading with diagonal underline accent */
+  /* Section heading */
   .section-heading {
     @apply font-pixel text-2xl md:text-3xl text-white leading-relaxed;
   }
 
   /* Hard-edge arcade card */
   .arcade-card {
-    @apply bg-arcade-card border border-primary-500/30 transition-all duration-200;
+    @apply relative bg-arcade-card border border-primary-500/30 transition-all duration-200;
     clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  }
+
+  /* Corner bracket that draws itself in on hover */
+  .arcade-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 14px;
+    height: 14px;
+    border-top: 2px solid #FFE000;
+    border-left: 2px solid #FFE000;
+    opacity: 0;
+    transform: translate(6px, 6px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+  }
+
+  .arcade-card:hover::before {
+    opacity: 0.8;
+    transform: translate(0, 0);
   }
 
   .arcade-card:hover {
     @apply border-primary-500;
-    box-shadow: 0 0 20px rgba(255, 34, 68, 0.3), inset 0 0 20px rgba(255, 34, 68, 0.03);
+    box-shadow: 0 0 22px rgba(255, 34, 68, 0.32), inset 0 0 22px rgba(255, 34, 68, 0.04);
   }
 
   /* Neon red glow text */
@@ -90,6 +129,7 @@
     width: 100%;
     height: 100%;
     clip: rect(0, 900px, 0, 0);
+    pointer-events: none;
   }
 
   .glitch-text::before {
@@ -110,112 +150,108 @@
     background: #FF2244;
     clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
     position: relative;
+    overflow: hidden;
+  }
+
+  /* Light sweeps across the button on hover */
+  .arcade-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.35) 50%, transparent 80%);
+    transform: translateX(-120%);
+    transition: transform 0.55s ease;
+    pointer-events: none;
+  }
+
+  .arcade-btn:hover::after {
+    transform: translateX(120%);
   }
 
   .arcade-btn:hover {
     background: #ff3d55;
-    box-shadow: 0 0 20px rgba(255, 34, 68, 0.6);
-    transform: translateY(-2px);
-  }
-
-  .arcade-btn:active {
-    transform: translateY(0);
+    box-shadow: 0 0 24px rgba(255, 34, 68, 0.65);
   }
 
   /* Tech tag pill */
   .tech-tag {
     @apply font-mono text-xs px-2 py-1 border border-primary-500/40 text-primary-400 bg-primary-500/10;
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
   }
+
+  .tech-tag:hover {
+    @apply text-primary-300 bg-primary-500/20;
+  }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────────
+   Framer Motion handles its own animations via useReducedMotion; this covers
+   the CSS-driven effects it can't see. */
+@media (prefers-reduced-motion: reduce) {
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  .glitch-text,
+  .glitch-text::before,
+  .glitch-text::after {
+    animation: none;
+  }
+
+  .glitch-text::before,
+  .glitch-text::after {
+    content: none;
+  }
+
+  .arcade-btn::after {
+    display: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* `.glitch-text` references this. It lives here rather than in the Tailwind
+   theme because Tailwind only emits a keyframe when an `animate-*` utility
+   using it appears in the markup, and nothing uses `animate-glitch`. */
+@keyframes glitch1 {
+  0%, 100% { transform: translate(0); }
+  20%      { transform: translate(-2px, 2px); }
+  40%      { transform: translate(2px, -2px); }
+  60%      { transform: translate(-1px, 1px); }
+  80%      { transform: translate(1px, -1px); }
 }
 
 @keyframes glitch-clip-1 {
-  0% {
-    clip: rect(42px, 9999px, 44px, 0);
-  }
-
-  10% {
-    clip: rect(12px, 9999px, 59px, 0);
-  }
-
-  20% {
-    clip: rect(85px, 9999px, 90px, 0);
-  }
-
-  30% {
-    clip: rect(1px, 9999px, 8px, 0);
-  }
-
-  40% {
-    clip: rect(60px, 9999px, 65px, 0);
-  }
-
-  50% {
-    clip: rect(20px, 9999px, 25px, 0);
-  }
-
-  60% {
-    clip: rect(70px, 9999px, 72px, 0);
-  }
-
-  70% {
-    clip: rect(30px, 9999px, 35px, 0);
-  }
-
-  80% {
-    clip: rect(50px, 9999px, 55px, 0);
-  }
-
-  90% {
-    clip: rect(5px, 9999px, 10px, 0);
-  }
-
-  100% {
-    clip: rect(80px, 9999px, 86px, 0);
-  }
+  0%   { clip: rect(42px, 9999px, 44px, 0); }
+  10%  { clip: rect(12px, 9999px, 59px, 0); }
+  20%  { clip: rect(85px, 9999px, 90px, 0); }
+  30%  { clip: rect(1px, 9999px, 8px, 0); }
+  40%  { clip: rect(60px, 9999px, 65px, 0); }
+  50%  { clip: rect(20px, 9999px, 25px, 0); }
+  60%  { clip: rect(70px, 9999px, 72px, 0); }
+  70%  { clip: rect(30px, 9999px, 35px, 0); }
+  80%  { clip: rect(50px, 9999px, 55px, 0); }
+  90%  { clip: rect(5px, 9999px, 10px, 0); }
+  100% { clip: rect(80px, 9999px, 86px, 0); }
 }
 
 @keyframes glitch-clip-2 {
-  0% {
-    clip: rect(65px, 9999px, 70px, 0);
-  }
-
-  10% {
-    clip: rect(30px, 9999px, 35px, 0);
-  }
-
-  20% {
-    clip: rect(5px, 9999px, 9px, 0);
-  }
-
-  30% {
-    clip: rect(75px, 9999px, 79px, 0);
-  }
-
-  40% {
-    clip: rect(40px, 9999px, 45px, 0);
-  }
-
-  50% {
-    clip: rect(15px, 9999px, 20px, 0);
-  }
-
-  60% {
-    clip: rect(55px, 9999px, 58px, 0);
-  }
-
-  70% {
-    clip: rect(25px, 9999px, 28px, 0);
-  }
-
-  80% {
-    clip: rect(88px, 9999px, 92px, 0);
-  }
-
-  90% {
-    clip: rect(45px, 9999px, 50px, 0);
-  }
-
-  100% {
-    clip: rect(10px, 9999px, 14px, 0);
-  }
+  0%   { clip: rect(65px, 9999px, 70px, 0); }
+  10%  { clip: rect(30px, 9999px, 35px, 0); }
+  20%  { clip: rect(5px, 9999px, 9px, 0); }
+  30%  { clip: rect(75px, 9999px, 79px, 0); }
+  40%  { clip: rect(40px, 9999px, 45px, 0); }
+  50%  { clip: rect(15px, 9999px, 20px, 0); }
+  60%  { clip: rect(55px, 9999px, 58px, 0); }
+  70%  { clip: rect(25px, 9999px, 28px, 0); }
+  80%  { clip: rect(88px, 9999px, 92px, 0); }
+  90%  { clip: rect(45px, 9999px, 50px, 0); }
+  100% { clip: rect(10px, 9999px, 14px, 0); }
 }

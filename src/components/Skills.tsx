@@ -8,7 +8,8 @@ import {
 } from 'react-icons/si'
 import { TbBrandCSharp } from 'react-icons/tb'
 
-const SECTION_NUMBER = '04'
+import SectionShell from './fx/SectionShell'
+import TiltCard from './fx/TiltCard'
 
 interface SkillItem {
   name: string
@@ -82,105 +83,102 @@ const SKILL_CATEGORIES: SkillCategory[] = [
   },
 ]
 
-const SkillCell = ({ skill, delay }: { skill: SkillItem; delay: number }) => (
+// Orchestration has to live in the parent's own variant — a `transition` prop
+// with staggerChildren on it is ignored.
+const gridVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.15 } },
+}
+
+const cellVariants = {
+  hidden: { opacity: 0, scale: 0.6, y: 12 },
+  visible: { opacity: 1, scale: 1, y: 0 },
+}
+
+const SkillCell = ({ skill }: { skill: SkillItem }) => (
   <motion.div
-    initial={{ opacity: 0, scale: 0.85 }}
-    whileInView={{ opacity: 1, scale: 1 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.3, delay }}
-    whileHover={{ scale: 1.1, y: -3 }}
-    className="flex flex-col items-center gap-2 p-3 group"
+    variants={cellVariants}
+    transition={{ type: 'spring', stiffness: 420, damping: 24 }}
+    whileHover={{
+      scale: 1.14,
+      y: -5,
+      borderColor: 'rgba(255,34,68,0.7)',
+      backgroundColor: 'rgba(255,34,68,0.1)',
+      boxShadow: '0 0 18px rgba(255,34,68,0.35)',
+    }}
+    className="group flex flex-col items-center gap-2 p-3"
     style={{
       border: '1px solid rgba(255,34,68,0.15)',
-      background: 'rgba(255,34,68,0.03)',
+      backgroundColor: 'rgba(255,34,68,0.03)',
       cursor: 'default',
       willChange: 'transform',
     }}
-    onMouseEnter={(e) => {
-      const el = e.currentTarget
-      el.style.borderColor = 'rgba(255,34,68,0.7)'
-      el.style.background   = 'rgba(255,34,68,0.1)'
-      el.style.boxShadow    = '0 0 16px rgba(255,34,68,0.3)'
-    }}
-    onMouseLeave={(e) => {
-      const el = e.currentTarget
-      el.style.borderColor = 'rgba(255,34,68,0.15)'
-      el.style.background   = 'rgba(255,34,68,0.03)'
-      el.style.boxShadow    = 'none'
-    }}
   >
-    <span
-      className="text-2xl text-primary-400 group-hover:text-primary-300 transition-colors"
+    <motion.span
+      className="text-2xl text-primary-400 transition-colors group-hover:text-primary-300"
       style={{ filter: 'drop-shadow(0 0 4px rgba(255,34,68,0.4))' }}
+      whileHover={{ rotate: [0, -12, 12, 0] }}
+      transition={{ duration: 0.45 }}
     >
       {skill.icon}
-    </span>
-    <span className="font-mono text-gray-400 text-xs text-center leading-tight group-hover:text-gray-200 transition-colors">
+    </motion.span>
+    <span className="text-center font-mono text-xs leading-tight text-gray-400 transition-colors group-hover:text-gray-200">
       {skill.name}
     </span>
   </motion.div>
 )
 
-const Skills = () => {
-  return (
-    <section id="skills" className="py-24" style={{ background: 'rgba(10,10,10,0.88)' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* Section header */}
+const Skills = () => (
+  <SectionShell id="skills" number="04" title="SKILLS" tone="base">
+    <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+      {SKILL_CATEGORIES.map((category, catIndex) => (
         <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="flex items-center gap-4 mb-16"
+          key={category.title}
+          initial={{ opacity: 0, y: 36 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.55, delay: catIndex * 0.08, ease: [0.22, 1, 0.36, 1] }}
         >
-          <span className="font-pixel text-primary-500/50" style={{ fontSize: '10px' }}>
-            {SECTION_NUMBER}.
-          </span>
-          <h2 className="section-heading">SKILLS</h2>
-          <div className="h-px flex-1 bg-gradient-to-r from-primary-500/40 to-transparent" />
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {SKILL_CATEGORIES.map((category, catIndex) => (
-            <motion.div
-              key={category.title}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: catIndex * 0.1 }}
-              className="arcade-card p-6"
-            >
-              {/* Category header */}
-              <div className="flex items-center gap-3 mb-6">
-                <span
-                  className="text-primary-500 text-xl"
+          <TiltCard max={5} className="h-full">
+            <div className="arcade-card h-full p-6">
+              <div className="mb-6 flex items-center gap-3">
+                <motion.span
+                  className="text-xl text-primary-500"
                   style={{ filter: 'drop-shadow(0 0 6px rgba(255,34,68,0.5))' }}
+                  whileHover={{ scale: 1.2, rotate: -10 }}
                 >
                   {category.icon}
-                </span>
-                <h3 className="font-pixel text-xs text-white tracking-widest">
+                </motion.span>
+                <h3 className="font-pixel text-xs tracking-widest text-white">
                   {category.title}
                 </h3>
+                <motion.div
+                  className="h-px flex-1 origin-left bg-primary-500/20"
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.7, delay: 0.2 }}
+                />
               </div>
 
-              {/* Skill inventory grid */}
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {category.skills.map((skill, skillIndex) => (
-                  <SkillCell
-                    key={skill.name}
-                    skill={skill}
-                    delay={catIndex * 0.05 + skillIndex * 0.04}
-                  />
+              {/* Cells pop in one by one via the parent's stagger */}
+              <motion.div
+                className="grid grid-cols-3 gap-2 sm:grid-cols-4"
+                variants={gridVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+              >
+                {category.skills.map((skill) => (
+                  <SkillCell key={skill.name} skill={skill} />
                 ))}
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
+              </motion.div>
+            </div>
+          </TiltCard>
+        </motion.div>
+      ))}
+    </div>
+  </SectionShell>
+)
 
 export default Skills
-

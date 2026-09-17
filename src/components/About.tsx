@@ -1,7 +1,10 @@
+import { useRef } from 'react'
 import { motion } from 'framer-motion'
 import { FaLaptopCode, FaServer, FaShoppingCart } from 'react-icons/fa'
-
-const SECTION_NUMBER = '01'
+import SectionShell from './fx/SectionShell'
+import TiltCard from './fx/TiltCard'
+import Reveal from './fx/Reveal'
+import { useParallaxY } from '../hooks/useMotionFX'
 
 const ABOUT_CARDS = [
   {
@@ -21,110 +24,86 @@ const ABOUT_CARDS = [
   },
 ]
 
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.12 } },
-}
-
-const cardVariants = {
-  hidden:  { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-}
-
 const About = () => {
+  const columnsRef = useRef<HTMLDivElement>(null)
+
+  // The two columns travel at different rates, which is what sells the depth.
+  const bioY = useParallaxY(columnsRef, 34)
+  const cardsY = useParallaxY(columnsRef, -30)
+
   return (
-    <section id="about" className="py-24" style={{ background: 'rgba(15,15,15,0.85)' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <SectionShell id="about" number="01" title="ABOUT ME" tone="dim">
+      <div ref={columnsRef} className="grid grid-cols-1 items-start gap-16 lg:grid-cols-2">
 
-        {/* Section header */}
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="flex items-center gap-4 mb-16"
-        >
-          <span className="font-pixel text-primary-500/50" style={{ fontSize: '10px' }}>
-            {SECTION_NUMBER}.
-          </span>
-          <h2 className="section-heading">ABOUT ME</h2>
-          <div className="h-px flex-1 bg-gradient-to-r from-primary-500/40 to-transparent" />
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-
-          {/* Bio text */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="space-y-6"
-          >
-            <p className="font-mono text-gray-300 leading-relaxed text-sm">
-              I'm a{' '}
-              <span className="text-primary-400 font-bold">Full Stack Developer</span>{' '}
+        {/* Bio */}
+        <motion.div className="space-y-6" style={{ y: bioY }}>
+          <Reveal from="left" distance={36}>
+            <p className="font-mono text-sm leading-relaxed text-gray-300">
+              I&apos;m a{' '}
+              <span className="font-bold text-primary-400">Full Stack Developer</span>{' '}
               and Information Technology graduate from the{' '}
               <span className="text-accent-500">University of Cebu – Banilad</span>.
               My core focus lies in engineering modern web applications, designing
               robust system architectures, and delivering seamless database integrations.
             </p>
+          </Reveal>
 
-            <p className="font-mono text-gray-300 leading-relaxed text-sm">
-              With a strong foundation in both frontend and backend technologies, I've
+          <Reveal from="left" distance={36} delay={0.12}>
+            <p className="font-mono text-sm leading-relaxed text-gray-300">
+              With a strong foundation in both frontend and backend technologies, I&apos;ve
               developed custom{' '}
-              <span className="text-primary-400 font-bold">full-stack systems</span>{' '}
+              <span className="font-bold text-primary-400">full-stack systems</span>{' '}
               from scratch. Professionally, I also bring experience managing high-traffic{' '}
-              <span className="text-primary-400 font-bold">e-commerce platforms</span>,
+              <span className="font-bold text-primary-400">e-commerce platforms</span>,
               handling complex Shopify integrations, and delivering highly tailored web
               solutions for clients.
             </p>
+          </Reveal>
 
-            {/* Divider quote */}
-            <div
-              className="flex items-center gap-4 py-4"
-              style={{ borderLeft: '3px solid #FF2244', paddingLeft: '16px' }}
-            >
-              <p className="font-mono text-xs text-gray-500 italic">
+          <Reveal from="left" distance={36} delay={0.24}>
+            <div className="relative flex items-center gap-4 py-4 pl-4">
+              {/* Rule draws itself downward as the quote arrives */}
+              <motion.span
+                className="absolute left-0 top-0 w-[3px] origin-top bg-primary-500"
+                initial={{ scaleY: 0 }}
+                whileInView={{ scaleY: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                style={{ height: '100%' }}
+              />
+              <p className="font-mono text-xs italic text-gray-500">
                 // Always learning. Always shipping.
               </p>
             </div>
+          </Reveal>
+        </motion.div>
 
-          
-          </motion.div>
-
-          {/* Cards */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 gap-4"
-          >
-            {ABOUT_CARDS.map(({ icon, title, description }) => (
-              <motion.div
-                key={title}
-                variants={cardVariants}
-                className="arcade-card p-6 flex items-start gap-5 group"
-              >
-                <div
-                  className="text-3xl text-primary-500 flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-200"
-                  style={{ filter: 'drop-shadow(0 0 6px rgba(255,34,68,0.5))' }}
-                >
-                  {icon}
+        {/* Capability cards */}
+        <motion.div className="grid grid-cols-1 gap-4" style={{ y: cardsY }}>
+          {ABOUT_CARDS.map(({ icon, title, description }, i) => (
+            <Reveal key={title} from="right" distance={40} delay={i * 0.12}>
+              <TiltCard max={6}>
+                <div className="arcade-card group flex items-start gap-5 p-6">
+                  <motion.div
+                    className="mt-0.5 flex-shrink-0 text-3xl text-primary-500"
+                    style={{ filter: 'drop-shadow(0 0 6px rgba(255,34,68,0.5))' }}
+                    whileHover={{ scale: 1.2, rotate: -8 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 12 }}
+                  >
+                    {icon}
+                  </motion.div>
+                  <div>
+                    <h3 className="mb-2 font-pixel text-xs tracking-wider text-white">{title}</h3>
+                    <p className="font-mono text-xs leading-relaxed text-gray-400">{description}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-pixel text-white text-xs mb-2 tracking-wider">{title}</h3>
-                  <p className="font-mono text-gray-400 text-xs leading-relaxed">{description}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
+              </TiltCard>
+            </Reveal>
+          ))}
+        </motion.div>
       </div>
-    </section>
+    </SectionShell>
   )
 }
 
 export default About
-
