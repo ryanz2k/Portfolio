@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react'
-import CustomCursor from './components/CustomCursor'
-import ArcadeBackground from './components/ArcadeBackground'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import About from './components/About'
@@ -12,10 +10,12 @@ import Contact from './components/Contact'
 import Footer from './components/Footer'
 import { NAV_ITEMS } from './data/navigation'
 
-import BootScreen from './components/fx/BootScreen'
 import ScrollProgress from './components/fx/ScrollProgress'
-import SectionRail from './components/fx/SectionRail'
 import TechMarquee from './components/fx/TechMarquee'
+import CallingCardIntro from './components/p5/CallingCardIntro'
+import P5Background from './components/p5/P5Background'
+import P5Cursor from './components/p5/P5Cursor'
+import PageWipe from './components/p5/PageWipe'
 
 const SECTION_IDS = NAV_ITEMS.map((item) => item.id)
 
@@ -28,6 +28,8 @@ const MARQUEE_MID = [
 
 function App() {
   const [activeSection, setActiveSection] = useState('hero')
+  // Bumped when the intro card clears, so the hero replays its entrance in view.
+  const [heroKey, setHeroKey] = useState(0)
 
   // A band across the middle of the viewport decides which section is current:
   // whichever section is crossing it wins. Simpler and steadier than measuring
@@ -60,27 +62,27 @@ function App() {
       observer.disconnect()
       window.removeEventListener('scroll', pinLastSection)
     }
-  }, [])
+  }, [heroKey])
 
   return (
-    <div className="min-h-screen bg-arcade-bg">
-      <BootScreen />
-      <CustomCursor />
-      <ArcadeBackground />
+    <div className="min-h-screen bg-p5-black">
+      <CallingCardIntro onDone={() => setHeroKey((k) => k + 1)} />
+      <PageWipe />
+      <P5Cursor />
+      <P5Background />
 
-      {/* Everything above the canvas */}
+      {/* Everything above the backdrop */}
       <div style={{ position: 'relative', zIndex: 1 }}>
-        <Navbar activeSection={activeSection} />
         <ScrollProgress />
-        <SectionRail sections={NAV_ITEMS} activeSection={activeSection} />
+        <Navbar activeSection={activeSection} />
 
         <main>
-          <Hero />
+          <Hero key={heroKey} />
           <TechMarquee items={MARQUEE_TOP} />
           <About />
           <Experience />
           <Projects />
-          <TechMarquee items={MARQUEE_MID} reverse />
+          <TechMarquee items={MARQUEE_MID} reverse tilt={2.5} />
           <Skills />
           <Education />
           <Contact />

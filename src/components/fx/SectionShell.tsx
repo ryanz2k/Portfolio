@@ -1,126 +1,89 @@
 import { ReactNode, useRef } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { useParallaxY, usePointerParallax, useScrollRange } from '../../hooks/useMotionFX'
+import { useParallaxY } from '../../hooks/useMotionFX'
+import RansomText from '../p5/RansomText'
 
 interface SectionShellProps {
   id: string
-  /** Two-digit stage number, e.g. "03". */
+  /** Two-digit section number, e.g. "03". */
   number: string
   title: string
-  /** Alternating background tint so neighbouring sections separate. */
-  tone?: 'base' | 'dim'
+  /** Small italic line above the title. */
+  kicker: string
+  /** Red sections alternate with black ones, the way P5 menus flip palettes. */
+  tone?: 'black' | 'red'
   children: ReactNode
 }
 
-// Deliberately not opaque: the parallax canvas behind the page needs to read
-// through, otherwise all that depth is hidden under the sections.
 const TONES = {
-  base: 'rgba(10,10,10,0.80)',
-  dim:  'rgba(16,16,18,0.76)',
+  black: 'bg-p5-black text-white',
+  red:   'bg-p5-red text-white',
 }
 
 /**
- * Every content section shares this frame: a parallax stage number ghosted into
- * the background, a drifting glow, and the animated heading rule. Keeping it in
- * one place means the depth cues line up from section to section.
+ * Every content section shares this frame: slanted top and bottom edges, a
+ * giant outlined section number drifting behind the content, and a
+ * ransom-note title with a slash that swipes in under it.
  */
-const SectionShell = ({ id, number, title, tone = 'base', children }: SectionShellProps) => {
+const SectionShell = ({ id, number, title, kicker, tone = 'black', children }: SectionShellProps) => {
   const sectionRef = useRef<HTMLElement>(null)
   const reduced = useReducedMotion()
-
-  const ghostY = useParallaxY(sectionRef, 140)
-  const orbY = useParallaxY(sectionRef, 220)
-  const gridY = useParallaxY(sectionRef, 60)
-  const ghostOpacity = useScrollRange(sectionRef, 0.02, 0.05, { smooth: true })
-  const pointer = usePointerParallax(26)
+  const ghostY = useParallaxY(sectionRef, 160)
 
   return (
     <section
       id={id}
       ref={sectionRef}
-      className="relative py-24 md:py-32 overflow-hidden"
-      style={{ background: TONES[tone] }}
+      className={`relative overflow-hidden py-28 md:py-36 ${TONES[tone]}`}
+      style={{ clipPath: 'polygon(0 3vw, 100% 0, 100% calc(100% - 3vw), 0 100%)' }}
     >
-      {/* Oversized stage number drifting behind the content */}
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute inset-0 ${tone === 'red' ? 'halftone' : 'halftone-light'}`}
+      />
+
+      {/* Giant outlined number drifting behind the content */}
       <motion.span
         aria-hidden
-        className="pointer-events-none absolute right-2 top-16 select-none font-pixel text-white"
+        className="pointer-events-none absolute -right-4 top-10 select-none font-display leading-none"
         style={{
           y: ghostY,
-          x: pointer.x,
-          opacity: ghostOpacity,
-          fontSize: 'clamp(7rem, 22vw, 18rem)',
-          lineHeight: 1,
+          rotate: -8,
+          fontSize: 'clamp(9rem, 30vw, 26rem)',
+          color: 'transparent',
+          WebkitTextStroke: tone === 'red' ? '3px rgba(0,0,0,0.35)' : '3px rgba(230,0,18,0.35)',
         }}
       >
         {number}
       </motion.span>
 
-      {/* Slow red bloom, offset from the number so the depth reads */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -left-40 top-1/4 h-[36rem] w-[36rem] rounded-full"
-        style={{
-          y: orbY,
-          background: 'radial-gradient(circle, rgba(255,34,68,0.10) 0%, transparent 65%)',
-          filter: 'blur(40px)',
-        }}
-      />
-
-      {/* Fine grid that creeps at its own pace */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.07]"
-        style={{
-          y: gridY,
-          backgroundImage: `
-            linear-gradient(rgba(255,34,68,0.25) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,34,68,0.25) 1px, transparent 1px)
-          `,
-          backgroundSize: '80px 80px',
-        }}
-      />
-
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="mb-14 flex items-center gap-4 md:mb-16"
-          initial={reduced ? false : { opacity: 0, x: -30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, amount: 0.6 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <span className="font-pixel text-primary-500/50" style={{ fontSize: '10px' }}>
-            {number}.
-          </span>
+        <header className="mb-14 md:mb-20">
+          <motion.p
+            className={`p5-label mb-3 ${tone === 'red' ? 'text-p5-ink' : 'text-p5-red'}`}
+            initial={reduced ? false : { opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ type: 'spring', stiffness: 400, damping: 26 }}
+          >
+            {number} // {kicker}
+          </motion.p>
 
-          <h2 className="section-heading relative">
-            {title}
-            {/* Light sweep that runs across the heading once it lands */}
-            {!reduced && (
-              <motion.span
-                aria-hidden
-                className="pointer-events-none absolute inset-0"
-                initial={{ x: '-120%' }}
-                whileInView={{ x: '120%' }}
-                viewport={{ once: true, amount: 0.6 }}
-                transition={{ duration: 1.1, delay: 0.25, ease: 'easeInOut' }}
-                style={{
-                  background:
-                    'linear-gradient(100deg, transparent 0%, rgba(255,224,0,0.35) 45%, transparent 70%)',
-                  mixBlendMode: 'screen',
-                }}
-              />
-            )}
-          </h2>
+          <div className="relative inline-block -rotate-2">
+            <RansomText as="h2" text={title} seed={Number(number) + 2} className="text-5xl md:text-7xl" />
 
-          <motion.div
-            className="h-px flex-1 origin-left bg-gradient-to-r from-primary-500/50 to-transparent"
-            initial={reduced ? false : { scaleX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true, amount: 0.6 }}
-            transition={{ duration: 0.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-          />
-        </motion.div>
+            {/* The slash under the title */}
+            <motion.span
+              aria-hidden
+              className={`absolute -bottom-4 -left-4 h-4 origin-left ${tone === 'red' ? 'bg-p5-ink' : 'bg-p5-red'}`}
+              style={{ width: 'calc(100% + 3rem)', clipPath: 'polygon(0 30%, 100% 0, 96% 100%, 2% 80%)' }}
+              initial={reduced ? false : { scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.35, delay: 0.35, ease: [0.76, 0, 0.24, 1] }}
+            />
+          </div>
+        </header>
 
         {children}
       </div>

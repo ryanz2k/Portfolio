@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Barlow+Condensed:ital,wght@0,500;0,700;1,600;1,800&family=Barlow:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,7 +6,7 @@
 
 @layer base {
 
-  /* The native cursor is only hidden once the custom reticle has actually
+  /* The native cursor is only hidden once the custom cursor has actually
      mounted, which it refuses to do on touch devices. */
   html.custom-cursor,
   html.custom-cursor * {
@@ -14,173 +14,166 @@
   }
 
   html {
-    scroll-behavior: smooth;
     /* Keeps anchored sections clear of the fixed navbar. */
-    scroll-padding-top: 5rem;
-    background-color: #0a0a0a;
+    scroll-padding-top: 4.5rem;
+    background-color: #0A0A0A;
   }
 
   body {
-    @apply bg-arcade-bg text-gray-100 font-mono;
+    @apply bg-p5-black font-body text-p5-paper;
     overflow-x: hidden;
-    /* CRT scanline overlay */
-    background-image: repeating-linear-gradient(0deg,
-        transparent,
-        transparent 2px,
-        rgba(0, 0, 0, 0.08) 2px,
-        rgba(0, 0, 0, 0.08) 4px);
   }
 
   ::selection {
-    background: rgba(255, 34, 68, 0.35);
+    background: #E60012;
     color: #fff;
   }
 
-  /* Visible focus ring — doubly important while the native cursor is hidden. */
+  /* Visible focus ring, which matters more while the native cursor is hidden. */
   :focus-visible {
-    outline: 2px solid #FFE000;
-    outline-offset: 2px;
+    outline: 3px solid #fff;
+    outline-offset: 3px;
   }
 
   ::-webkit-scrollbar {
-    width: 6px;
+    width: 10px;
   }
 
   ::-webkit-scrollbar-track {
-    background: #0a0a0a;
+    background: #000;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #FF2244;
-    border-radius: 0;
+    background: #E60012;
+    border: 2px solid #000;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #ff5570;
+    background: #FF2A3D;
   }
 }
 
 @layer components {
 
-  /* Section label badge — angled red tab */
-  .section-label {
-    @apply inline-block font-pixel text-xs text-accent-500 tracking-widest mb-2;
+  /* ── Jagged cuts ─────────────────────────────────────────────────────────
+     Nothing in P5 is a clean rectangle. These are slightly-off
+     quadrilaterals, in px so tall cards never lose content to the cut. */
+  .cut-a { clip-path: polygon(0 10px, 100% 0, calc(100% - 8px) 100%, 6px calc(100% - 6px)); }
+  .cut-b { clip-path: polygon(8px 0, 100% 8px, 100% calc(100% - 4px), 0 100%); }
+  .cut-c { clip-path: polygon(0 0, calc(100% - 6px) 6px, 100% 100%, 10px calc(100% - 8px)); }
+  .cut-d { clip-path: polygon(4px 6px, 100% 0, calc(100% - 4px) calc(100% - 10px), 0 100%); }
+  /* Gentler cut for small tags, where the big ones would eat the text. */
+  .cut-sm { clip-path: polygon(3px 0, 100% 2px, calc(100% - 3px) 100%, 0 calc(100% - 2px)); }
+
+  /* Halftone dots, the comic-print texture behind most P5 screens. */
+  .halftone {
+    background-image: radial-gradient(rgba(0, 0, 0, 0.22) 1.2px, transparent 1.6px);
+    background-size: 9px 9px;
   }
 
-  /* Section heading */
-  .section-heading {
-    @apply font-pixel text-2xl md:text-3xl text-white leading-relaxed;
+  .halftone-red {
+    background-image: radial-gradient(rgba(230, 0, 18, 0.35) 1.4px, transparent 1.8px);
+    background-size: 10px 10px;
   }
 
-  /* Hard-edge arcade card */
-  .arcade-card {
-    @apply relative bg-arcade-card border border-primary-500/30 transition-all duration-200;
-    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  .halftone-light {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1.2px, transparent 1.6px);
+    background-size: 9px 9px;
   }
 
-  /* Corner bracket that draws itself in on hover */
-  .arcade-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 14px;
-    height: 14px;
-    border-top: 2px solid #FFE000;
-    border-left: 2px solid #FFE000;
-    opacity: 0;
-    transform: translate(6px, 6px);
-    transition: opacity 0.25s ease, transform 0.25s ease;
-    pointer-events: none;
+  /* Heavy italic label, used for the small caps above headings. */
+  .p5-label {
+    @apply font-cond text-sm font-extrabold uppercase italic tracking-[0.18em];
   }
 
-  .arcade-card:hover::before {
-    opacity: 0.8;
-    transform: translate(0, 0);
+  /* ── Button ──────────────────────────────────────────────────────────────
+     Skewed black slab that floods red on hover, with a white offset slab
+     that slides out behind it. */
+  .p5-btn {
+    @apply relative inline-flex items-center gap-3 font-display text-xl uppercase tracking-wider text-white;
+    padding: 0.7rem 2.2rem;
+    isolation: isolate;
+    transform: skewX(-12deg);
+    transition: transform 0.15s cubic-bezier(0.2, 1.6, 0.4, 1);
   }
 
-  .arcade-card:hover {
-    @apply border-primary-500;
-    box-shadow: 0 0 22px rgba(255, 34, 68, 0.32), inset 0 0 22px rgba(255, 34, 68, 0.04);
+  .p5-btn > * {
+    display: inline-block;
+    transform: skewX(12deg);
   }
 
-  /* Neon red glow text */
-  .text-neon {
-    text-shadow: 0 0 8px rgba(255, 34, 68, 0.8), 0 0 20px rgba(255, 34, 68, 0.4);
-  }
-
-  /* Neon yellow glow text */
-  .text-neon-yellow {
-    text-shadow: 0 0 8px rgba(255, 224, 0, 0.8), 0 0 20px rgba(255, 224, 0, 0.4);
-  }
-
-  /* Glitch text effect (applied to heading spans) */
-  .glitch-text {
-    position: relative;
-    animation: glitch1 4s steps(1) infinite;
-  }
-
-  .glitch-text::before,
-  .glitch-text::after {
-    content: attr(data-text);
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    clip: rect(0, 900px, 0, 0);
-    pointer-events: none;
-  }
-
-  .glitch-text::before {
-    color: #FF2244;
-    animation: glitch-clip-1 3s infinite linear alternate-reverse;
-    text-shadow: 2px 0 #FF2244;
-  }
-
-  .glitch-text::after {
-    color: #FFE000;
-    animation: glitch-clip-2 2s infinite linear alternate-reverse;
-    text-shadow: -2px 0 #FFE000;
-  }
-
-  /* Arcade button */
-  .arcade-btn {
-    @apply font-pixel text-xs tracking-wider px-6 py-3 text-white transition-all duration-150;
-    background: #FF2244;
-    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* Light sweeps across the button on hover */
-  .arcade-btn::after {
+  .p5-btn::before,
+  .p5-btn::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.35) 50%, transparent 80%);
-    transform: translateX(-120%);
-    transition: transform 0.55s ease;
-    pointer-events: none;
+    z-index: -1;
+    transition: transform 0.15s cubic-bezier(0.2, 1.6, 0.4, 1), background-color 0.15s;
   }
 
-  .arcade-btn:hover::after {
-    transform: translateX(120%);
+  .p5-btn::before {
+    background: #fff;
+    transform: translate(0, 0);
   }
 
-  .arcade-btn:hover {
-    background: #ff3d55;
-    box-shadow: 0 0 24px rgba(255, 34, 68, 0.65);
+  .p5-btn::after {
+    background: #000;
+    border: 3px solid #fff;
   }
 
-  /* Tech tag pill */
-  .tech-tag {
-    @apply font-mono text-xs px-2 py-1 border border-primary-500/40 text-primary-400 bg-primary-500/10;
-    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+  .p5-btn:hover {
+    transform: skewX(-12deg) scale(1.06) rotate(-2deg);
   }
 
-  .tech-tag:hover {
-    @apply text-primary-300 bg-primary-500/20;
+  .p5-btn:hover::before {
+    transform: translate(7px, 7px);
+  }
+
+  .p5-btn:hover::after {
+    background: #E60012;
+  }
+
+  .p5-btn-red::after {
+    background: #E60012;
+    border-color: #000;
+  }
+
+  .p5-btn-red::before {
+    background: #000;
+  }
+
+  .p5-btn-red:hover::after {
+    background: #000;
+    border-color: #fff;
+  }
+
+  .p5-btn-red:hover::before {
+    background: #E60012;
+  }
+
+  /* Tech tag, a tiny rotated sticker. */
+  .p5-tag {
+    @apply inline-block bg-p5-ink px-2 py-0.5 font-cond text-xs font-bold uppercase tracking-wider text-white;
+    transform: skewX(-10deg);
+    transition: background-color 0.15s, color 0.15s, transform 0.15s;
+  }
+
+  .p5-tag:hover {
+    @apply bg-p5-red;
+    transform: skewX(-10deg) rotate(-3deg) scale(1.08);
+  }
+
+  .p5-tag-light {
+    @apply bg-white text-p5-ink;
+  }
+
+  .p5-tag-light:hover {
+    @apply bg-p5-red text-white;
+  }
+
+  /* Diagonal stripes, used on the marquee tape and accents. */
+  .stripes-red {
+    background-image: repeating-linear-gradient(-45deg, #E60012 0 14px, #000 14px 28px);
   }
 }
 
@@ -189,25 +182,6 @@
    the CSS-driven effects it can't see. */
 @media (prefers-reduced-motion: reduce) {
 
-  html {
-    scroll-behavior: auto;
-  }
-
-  .glitch-text,
-  .glitch-text::before,
-  .glitch-text::after {
-    animation: none;
-  }
-
-  .glitch-text::before,
-  .glitch-text::after {
-    content: none;
-  }
-
-  .arcade-btn::after {
-    display: none;
-  }
-
   *,
   *::before,
   *::after {
@@ -215,43 +189,4 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-}
-
-/* `.glitch-text` references this. It lives here rather than in the Tailwind
-   theme because Tailwind only emits a keyframe when an `animate-*` utility
-   using it appears in the markup, and nothing uses `animate-glitch`. */
-@keyframes glitch1 {
-  0%, 100% { transform: translate(0); }
-  20%      { transform: translate(-2px, 2px); }
-  40%      { transform: translate(2px, -2px); }
-  60%      { transform: translate(-1px, 1px); }
-  80%      { transform: translate(1px, -1px); }
-}
-
-@keyframes glitch-clip-1 {
-  0%   { clip: rect(42px, 9999px, 44px, 0); }
-  10%  { clip: rect(12px, 9999px, 59px, 0); }
-  20%  { clip: rect(85px, 9999px, 90px, 0); }
-  30%  { clip: rect(1px, 9999px, 8px, 0); }
-  40%  { clip: rect(60px, 9999px, 65px, 0); }
-  50%  { clip: rect(20px, 9999px, 25px, 0); }
-  60%  { clip: rect(70px, 9999px, 72px, 0); }
-  70%  { clip: rect(30px, 9999px, 35px, 0); }
-  80%  { clip: rect(50px, 9999px, 55px, 0); }
-  90%  { clip: rect(5px, 9999px, 10px, 0); }
-  100% { clip: rect(80px, 9999px, 86px, 0); }
-}
-
-@keyframes glitch-clip-2 {
-  0%   { clip: rect(65px, 9999px, 70px, 0); }
-  10%  { clip: rect(30px, 9999px, 35px, 0); }
-  20%  { clip: rect(5px, 9999px, 9px, 0); }
-  30%  { clip: rect(75px, 9999px, 79px, 0); }
-  40%  { clip: rect(40px, 9999px, 45px, 0); }
-  50%  { clip: rect(15px, 9999px, 20px, 0); }
-  60%  { clip: rect(55px, 9999px, 58px, 0); }
-  70%  { clip: rect(25px, 9999px, 28px, 0); }
-  80%  { clip: rect(88px, 9999px, 92px, 0); }
-  90%  { clip: rect(45px, 9999px, 50px, 0); }
-  100% { clip: rect(10px, 9999px, 14px, 0); }
 }

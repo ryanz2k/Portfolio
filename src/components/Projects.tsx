@@ -13,7 +13,7 @@ import petjetImg from '../assets/petjet shopify.webp'
 import zonafloorsImg from '../assets/zonafloors wordpress.webp'
 
 import SectionShell from './fx/SectionShell'
-import TiltCard from './fx/TiltCard'
+import Panel from './p5/Panel'
 import HoverPreview from './fx/HoverPreview'
 import { useHoverPreview } from '../hooks/useHoverPreview'
 import type { PreviewSize } from '../hooks/useHoverPreview'
@@ -152,59 +152,67 @@ const OTHER_PROJECTS: OtherProject[] = [
   },
 ]
 
+const CUTS = ['a', 'b', 'c', 'd'] as const
+
 /** Small link cluster shared by both card types. */
 const ProjectLinks = ({
   github,
   link,
   title,
-  size = 18,
+  light = false,
 }: {
   github?: string
   link?: string
   title: string
-  size?: number
-}) => (
-  <div className="relative z-10 flex flex-shrink-0 items-center gap-3">
-    {github && (
-      <motion.a
-        href={github}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={`${title} on GitHub`}
-        className="text-gray-500 transition-colors hover:text-primary-400"
-        whileHover={{ scale: 1.25, rotate: -8 }}
-        whileTap={{ scale: 0.9 }}
-      >
-        <FaGithub size={size} />
-      </motion.a>
-    )}
-    {link && (
-      <motion.a
-        href={link}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={`${title} live site`}
-        className="text-gray-500 transition-colors hover:text-primary-400"
-        whileHover={{ scale: 1.25, rotate: 8 }}
-        whileTap={{ scale: 0.9 }}
-      >
-        <FaExternalLinkAlt size={size - 3} />
-      </motion.a>
-    )}
-  </div>
-)
+  /** True when the card behind is light, so the buttons go dark. */
+  light?: boolean
+}) => {
+  const base = light
+    ? 'bg-p5-ink text-white hover:bg-p5-red'
+    : 'bg-white text-p5-ink hover:bg-p5-ink hover:text-white'
 
-const TechTags = ({ items }: { items: string[] }) => (
+  return (
+    <div className="relative z-10 flex flex-shrink-0 items-center gap-2">
+      {github && (
+        <motion.a
+          href={github}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${title} on GitHub`}
+          className={`cut-b flex h-10 w-10 items-center justify-center transition-colors ${base}`}
+          whileHover={{ scale: 1.2, rotate: -10 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <FaGithub size={18} />
+        </motion.a>
+      )}
+      {link && (
+        <motion.a
+          href={link}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${title} live site`}
+          className={`cut-d flex h-10 w-10 items-center justify-center transition-colors ${base}`}
+          whileHover={{ scale: 1.2, rotate: 10 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <FaExternalLinkAlt size={15} />
+        </motion.a>
+      )}
+    </div>
+  )
+}
+
+const TechTags = ({ items, light = false }: { items: string[]; light?: boolean }) => (
   <div className="mt-auto flex flex-wrap gap-2">
     {items.map((tech, i) => (
       <motion.span
         key={tech}
-        className="tech-tag"
-        initial={{ opacity: 0, y: 8 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        className={`p5-tag ${light ? 'p5-tag-light' : ''}`}
+        initial={{ opacity: 0, scale: 0 }}
+        whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.3, delay: 0.25 + i * 0.05 }}
-        whileHover={{ y: -3, borderColor: 'rgba(255,34,68,0.9)' }}
+        transition={{ type: 'spring', stiffness: 500, damping: 18, delay: 0.2 + i * 0.04 }}
       >
         {tech}
       </motion.span>
@@ -212,15 +220,14 @@ const TechTags = ({ items }: { items: string[] }) => (
   </div>
 )
 
-const PreviewHint = () => (
-  <div className="mt-4 flex items-center gap-2 opacity-50 transition-opacity group-hover:opacity-0">
-    <motion.span
-      className="h-1.5 w-1.5 bg-primary-500"
-      animate={{ opacity: [1, 0.2, 1] }}
-      transition={{ duration: 1.4, repeat: Infinity }}
-    />
-    <span className="font-mono text-xs text-gray-600">hover to preview</span>
-  </div>
+const PreviewHint = ({ light = false }: { light?: boolean }) => (
+  <p
+    className={`p5-label mt-4 transition-opacity group-hover/panel:opacity-0 ${
+      light ? 'text-white/70' : 'text-p5-red'
+    }`}
+  >
+    ▶ Hover to preview
+  </p>
 )
 
 const FeaturedCard = ({ project, index }: { project: FeaturedProject; index: number }) => {
@@ -238,37 +245,35 @@ const FeaturedCard = ({ project, index }: { project: FeaturedProject; index: num
       />
 
       <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 80, rotate: index % 2 ? 6 : -6 }}
+        whileInView={{ opacity: 1, y: 0, rotate: index % 2 ? 0.8 : -0.8 }}
         viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.6, delay: index * 0.12, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ type: 'spring', stiffness: 240, damping: 20, delay: (index % 3) * 0.08 }}
+        className="h-full"
       >
-        <TiltCard max={8} lift={14} className="h-full" {...handlers}>
-          <div ref={cardRef} className="arcade-card group flex h-full flex-col p-6">
-            <div className="mb-4 flex items-start justify-between">
+        <div ref={cardRef} className="h-full" {...handlers}>
+          <Panel tone="white" cut={CUTS[index % CUTS.length]} shadow="red" className="halftone flex flex-col p-6">
+            <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <span
-                  className="mb-1 block font-pixel text-accent-500/70"
-                  style={{ fontSize: '8px', letterSpacing: '0.2em' }}
-                >
-                  {project.category}
+                <span className="cut-sm mb-2 inline-block bg-p5-red px-2 font-cond text-xs font-extrabold uppercase italic tracking-[0.2em] text-white">
+                  Target · {project.category}
                 </span>
-                <h3 className="font-pixel text-xs tracking-wide text-white transition-colors group-hover:text-primary-400">
+                <h3 className="font-display text-3xl uppercase leading-tight tracking-wide transition-colors group-hover/panel:text-p5-red">
                   {project.title}
                 </h3>
-                <p className="mt-1 font-mono text-xs text-primary-400">{project.subtitle}</p>
+                <p className="font-cond text-base font-bold italic text-p5-ink/70">{project.subtitle}</p>
               </div>
-              <ProjectLinks github={project.github} link={project.link} title={project.title} />
+              <ProjectLinks github={project.github} link={project.link} title={project.title} light />
             </div>
 
-            <p className="mb-5 flex-1 font-mono text-xs leading-relaxed text-gray-400">
+            <p className="mb-5 flex-1 font-body text-sm leading-relaxed text-p5-ink/85">
               {project.description}
             </p>
 
             <TechTags items={project.technologies} />
             <PreviewHint />
-          </div>
-        </TiltCard>
+          </Panel>
+        </div>
       </motion.div>
     </>
   )
@@ -291,74 +296,51 @@ const OtherCard = ({ project, index }: { project: OtherProject; index: number })
       )}
 
       <motion.div
-        initial={{ opacity: 0, y: 28 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, scale: 0.7, rotate: -8 }}
+        whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
         viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.5, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ type: 'spring', stiffness: 320, damping: 20, delay: (index % 3) * 0.06 }}
+        className="h-full"
       >
-        <TiltCard max={6} lift={10} className="h-full" {...handlers}>
-          <div ref={cardRef} className="arcade-card group relative flex h-full flex-col p-5">
+        <div ref={cardRef} className="h-full" {...handlers}>
+          <Panel tone="red" cut={CUTS[(index + 1) % CUTS.length]} shadow="white" className="flex flex-col p-5">
             <div className="mb-3 flex items-start justify-between">
-              <motion.div
-                className="text-2xl text-primary-500"
-                whileHover={{ scale: 1.25, rotate: -10 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 12 }}
-              >
+              <span className="cut-c flex h-12 w-12 items-center justify-center bg-p5-ink text-2xl text-white transition-transform group-hover/panel:-rotate-12 group-hover/panel:scale-110">
                 {project.icon}
-              </motion.div>
-              <ProjectLinks
-                github={project.github}
-                link={project.link}
-                title={project.title}
-                size={15}
-              />
+              </span>
+              <ProjectLinks github={project.github} link={project.link} title={project.title} />
             </div>
 
-            <span className="mb-2 font-pixel text-accent-500/50" style={{ fontSize: '8px' }}>
-              {project.category}
-            </span>
-            <h3 className="mb-2 font-mono text-sm font-bold text-white transition-colors group-hover:text-primary-400">
-              {project.title}
-            </h3>
-            <p className="mb-4 flex-1 font-mono text-xs leading-relaxed text-gray-500">
+            <span className="p5-label mb-1 text-p5-ink">{project.category}</span>
+            <h3 className="mb-2 font-display text-2xl uppercase tracking-wide">{project.title}</h3>
+            <p className="mb-4 flex-1 font-body text-sm leading-relaxed text-white/90">
               {project.description}
             </p>
 
             <TechTags items={project.technologies} />
-            {project.previewImage && <PreviewHint />}
-          </div>
-        </TiltCard>
+            {project.previewImage && <PreviewHint light />}
+          </Panel>
+        </div>
       </motion.div>
     </>
   )
 }
 
-const GroupLabel = ({ label, muted = false }: { label: string; muted?: boolean }) => (
+/** A tilted strip of tape announcing each group of cards. */
+const GroupLabel = ({ label, tilt = -2 }: { label: string; tilt?: number }) => (
   <motion.div
-    initial={{ opacity: 0, x: -20 }}
+    initial={{ opacity: 0, x: -200 }}
     whileInView={{ opacity: 1, x: 0 }}
     viewport={{ once: true }}
-    transition={{ duration: 0.5 }}
-    className="mb-8 flex items-center gap-3"
+    transition={{ type: 'spring', stiffness: 360, damping: 26 }}
+    className="mb-10"
   >
-    <motion.div
-      className={`h-2 w-2 ${muted ? 'bg-gray-600' : 'bg-primary-500'}`}
-      animate={muted ? undefined : { opacity: [1, 0.3, 1] }}
-      transition={{ duration: 1.6, repeat: Infinity }}
-    />
     <span
-      className={`font-pixel ${muted ? 'text-gray-500' : 'text-primary-500/70'}`}
-      style={{ fontSize: '9px', letterSpacing: '0.2em' }}
+      className="cut-a inline-block bg-white px-5 py-1.5 font-display text-2xl uppercase tracking-wide text-p5-ink md:text-3xl"
+      style={{ transform: `rotate(${tilt}deg)`, filter: 'drop-shadow(5px 5px 0 #E60012)' }}
     >
       {label}
     </span>
-    <motion.div
-      className={`h-px flex-1 origin-left ${muted ? 'bg-gray-800' : 'bg-primary-500/20'}`}
-      initial={{ scaleX: 0 }}
-      whileInView={{ scaleX: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-    />
   </motion.div>
 )
 
@@ -371,31 +353,31 @@ const Projects = () => {
   const wordpressY = useParallaxY(wordpressRef, -22)
 
   return (
-    <SectionShell id="projects" number="03" title="PROJECTS" tone="dim">
-      <GroupLabel label="FEATURED — HOVER TO PREVIEW" />
+    <SectionShell id="projects" number="03" title="PROJECTS" kicker="Targets acquired" tone="black">
+      <GroupLabel label="Featured — hover to preview" />
       <motion.div
         ref={featuredRef}
         style={{ y: featuredY }}
-        className="mb-20 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+        className="mb-24 grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3"
       >
         {FEATURED_PROJECTS.map((project, i) => (
           <FeaturedCard key={project.title} project={project} index={i} />
         ))}
       </motion.div>
 
-      <GroupLabel label="WORDPRESS & SHOPIFY — HOVER TO PREVIEW" />
+      <GroupLabel label="WordPress & Shopify" tilt={1.5} />
       <motion.div
         ref={wordpressRef}
         style={{ y: wordpressY }}
-        className="mb-20 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+        className="mb-24 grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3"
       >
         {WORDPRESS_PROJECTS.map((project, i) => (
-          <FeaturedCard key={project.title} project={project} index={i} />
+          <FeaturedCard key={project.title} project={project} index={i + 1} />
         ))}
       </motion.div>
 
-      <GroupLabel label="OTHER PROJECTS" muted />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <GroupLabel label="Other projects" tilt={-3} />
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
         {OTHER_PROJECTS.map((project, i) => (
           <OtherCard key={project.title} project={project} index={i} />
         ))}

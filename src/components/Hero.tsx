@@ -1,58 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import { FaGithub, FaLinkedin, FaEnvelope } from 'react-icons/fa'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import profileImg from '../assets/profile.webp'
-import MagneticButton from './fx/MagneticButton'
-import { usePointerParallax, useRichMotion } from '../hooks/useMotionFX'
+import RansomText from './p5/RansomText'
+import Starburst from './p5/Starburst'
+import { usePointerParallax } from '../hooks/useMotionFX'
+import { navigateTo } from '../lib/navigate'
 
-const TYPED_ROLES = [
+const ROLES = [
   'Full Stack Developer',
   'Web Developer',
   'E-Commerce Specialist',
   'Software Engineer',
 ]
 
-const TYPING_SPEED_MS = 80
-const ERASE_SPEED_MS = 40
-const PAUSE_AFTER_MS = 1800
-
-const TypedRole = () => {
-  const [displayText, setDisplayText] = useState('')
-  const [roleIndex, setRoleIndex] = useState(0)
-  const [isErasing, setIsErasing] = useState(false)
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>()
-
-  useEffect(() => {
-    const currentRole = TYPED_ROLES[roleIndex]
-
-    if (!isErasing && displayText === currentRole) {
-      timeoutRef.current = setTimeout(() => setIsErasing(true), PAUSE_AFTER_MS)
-      return
-    }
-
-    if (isErasing && displayText === '') {
-      setIsErasing(false)
-      setRoleIndex((prev) => (prev + 1) % TYPED_ROLES.length)
-      return
-    }
-
-    timeoutRef.current = setTimeout(() => {
-      setDisplayText(isErasing
-        ? currentRole.slice(0, displayText.length - 1)
-        : currentRole.slice(0, displayText.length + 1)
-      )
-    }, isErasing ? ERASE_SPEED_MS : TYPING_SPEED_MS)
-
-    return () => clearTimeout(timeoutRef.current)
-  }, [displayText, isErasing, roleIndex])
-
-  return (
-    <span className="text-primary-400">
-      {displayText}
-      <span className="animate-blink text-accent-500">▌</span>
-    </span>
-  )
-}
+const ROLE_HOLD_MS = 2200
 
 const STATUS_LINES = [
   { label: 'STATUS',   value: 'OPEN TO WORK' },
@@ -62,230 +24,154 @@ const STATUS_LINES = [
 ]
 
 const SOCIALS = [
-  { icon: <FaGithub size={24} />,   href: 'https://github.com/ryanz2k',            label: 'GitHub' },
-  { icon: <FaLinkedin size={24} />, href: 'https://www.linkedin.com/in/ryanz2k/',  label: 'LinkedIn' },
-  { icon: <FaEnvelope size={24} />, href: 'mailto:JohnRyanGomez812@gmail.com',     label: 'Email' },
+  { icon: <FaGithub size={22} />,   href: 'https://github.com/ryanz2k',           label: 'GitHub' },
+  { icon: <FaLinkedin size={22} />, href: 'https://www.linkedin.com/in/ryanz2k/', label: 'LinkedIn' },
+  { icon: <FaEnvelope size={22} />, href: 'mailto:JohnRyanGomez812@gmail.com',    label: 'Email' },
 ]
 
-/** Letters drop in one at a time so the name assembles rather than just fading. */
-const AssembledWord = ({
-  text,
-  className,
-  startDelay = 0,
-}: {
-  text: string
-  className?: string
-  startDelay?: number
-}) => {
-  const reduced = useReducedMotion()
+/** Each role slams in over the last one, instead of being typed out. */
+const RoleSlam = () => {
+  const [index, setIndex] = useState(0)
 
-  if (reduced) {
-    return <span className={className} data-text={text}>{text}</span>
-  }
+  useEffect(() => {
+    const timer = setInterval(() => setIndex((i) => (i + 1) % ROLES.length), ROLE_HOLD_MS)
+    return () => clearInterval(timer)
+  }, [])
 
   return (
-    <span className={className} data-text={text}>
-      {text.split('').map((char, i) => (
+    <div className="relative h-12 md:h-14" aria-live="polite">
+      <AnimatePresence initial={false}>
         <motion.span
-          key={`${char}-${i}`}
-          className="inline-block"
-          initial={{ opacity: 0, y: -28, rotateX: -90 }}
-          animate={{ opacity: 1, y: 0, rotateX: 0 }}
-          transition={{
-            delay: startDelay + i * 0.045,
-            duration: 0.5,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-          style={{ transformPerspective: 400 }}
+          key={ROLES[index]}
+          className="cut-a absolute left-0 top-0 inline-block whitespace-nowrap bg-white px-4 py-1 font-display text-2xl uppercase tracking-wide text-p5-ink md:text-3xl"
+          style={{ filter: 'drop-shadow(5px 5px 0 #E60012)' }}
+          initial={{ x: -80, opacity: 0, rotate: -12, scale: 1.4 }}
+          animate={{ x: 0, opacity: 1, rotate: -3, scale: 1 }}
+          // The old role gets out of the way fast, so the two never stack up.
+          exit={{ x: 160, opacity: 0, rotate: 8, transition: { duration: 0.12 } }}
+          transition={{ type: 'spring', stiffness: 520, damping: 24, delay: 0.08 }}
         >
-          {/* A non-breaking space keeps the gap from collapsing between the
-              inline-block letters. */}
-          {char === ' ' ? ' ' : char}
+          {ROLES[index]}
         </motion.span>
-      ))}
-    </span>
+      </AnimatePresence>
+    </div>
   )
 }
 
 const Hero = () => {
   const sectionRef = useRef<HTMLElement>(null)
-  const rich = useRichMotion()
   const reduced = useReducedMotion()
   const pointer = usePointerParallax(1)
 
-  // Hero-specific scroll track: 0 at the top, 1 once the section has scrolled by.
+  // 0 at the top, 1 once the hero has scrolled past.
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start start', 'end start'],
   })
 
-  // Each column leaves at its own rate — that difference is the parallax.
-  const textY = useTransform(scrollYProgress, [0, 1], [0, -90])
-  const imageY = useTransform(scrollYProgress, [0, 1], [0, 160])
-  const imageScale = useTransform(scrollYProgress, [0, 1], [1, 0.86])
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 0])
-  const contentBlur = useTransform(scrollYProgress, [0, 1], [0, 6])
-  const contentFilter = useTransform(contentBlur, (v) => `blur(${v}px)`)
-  const stripeY = useTransform(scrollYProgress, [0, 1], [0, 220])
-  const gridY = useTransform(scrollYProgress, [0, 1], [0, 120])
-  const hintOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0])
+  // Each layer leaves at its own rate; that difference is the parallax.
+  const textY = useTransform(scrollYProgress, [0, 1], [0, -120])
+  const imageY = useTransform(scrollYProgress, [0, 1], [0, 180])
+  const slabX = useTransform(scrollYProgress, [0, 1], ['0%', '30%'])
+  const burstRotate = useTransform(scrollYProgress, [0, 1], [0, 90])
+  const fade = useTransform(scrollYProgress, [0, 0.8], [1, 0])
 
-  // Pointer-driven depth for the decorative layers.
-  const stripeX = useTransform(pointer.x, (v) => v * 40)
-  const frameX = useTransform(pointer.x, (v) => v * -24)
-  const frameY = useTransform(pointer.y, (v) => v * -18)
-  const tiltY = useTransform(pointer.x, (v) => (rich ? v * 14 : 0))
-  const tiltX = useTransform(pointer.y, (v) => (rich ? v * -14 : 0))
-  const frameXInverse = useTransform(frameX, (v) => -v)
-  const frameYInverse = useTransform(frameY, (v) => -v)
+  const portraitX = useTransform(pointer.x, (v) => v * -18)
+  const portraitY = useTransform(pointer.y, (v) => v * -12)
+  const shadowX = useTransform(pointer.x, (v) => v * 30)
+  const shadowY = useTransform(pointer.y, (v) => v * 20)
 
   return (
     <section
       id="hero"
       ref={sectionRef}
-      className="relative flex min-h-screen items-center justify-center overflow-hidden pt-14"
-      style={{ background: 'rgba(10,10,10,0.78)' }}
+      className="relative flex min-h-screen items-center overflow-hidden bg-p5-black pt-20"
     >
-      {/* Diagonal wash, slowest moving layer in the hero */}
+      {/* Red slab slicing across the right half */}
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          y: stripeY,
-          x: stripeX,
-          background: 'linear-gradient(135deg, rgba(255,34,68,0.09) 0%, transparent 55%)',
-        }}
-      />
-
-      {/* Grid that drifts faster than the wash */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-10"
-        style={{
-          y: gridY,
-          backgroundImage: `
-            linear-gradient(rgba(255,34,68,0.3) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,34,68,0.3) 1px, transparent 1px)
-          `,
-          backgroundSize: '60px 60px',
-        }}
-      />
-
-      <motion.div
-        className="relative z-10 mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"
-        style={{ opacity: contentOpacity, filter: reduced ? undefined : contentFilter }}
+        className="absolute -right-[20%] top-0 h-full w-[75%] bg-p5-red md:w-[60%]"
+        style={{ x: slabX, clipPath: 'polygon(28% 0, 100% 0, 100% 100%, 0 100%)' }}
+        initial={reduced ? false : { clipPath: 'polygon(100% 0, 100% 0, 100% 100%, 100% 100%)' }}
+        animate={{ clipPath: 'polygon(28% 0, 100% 0, 100% 100%, 0 100%)' }}
+        transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1], delay: 0.1 }}
       >
-        <div className="flex flex-col-reverse items-center justify-between gap-16 md:flex-row">
+        <div className="halftone absolute inset-0" />
+      </motion.div>
+
+      <div className="halftone-light pointer-events-none absolute inset-0" />
+
+      <motion.div
+        className="relative z-10 mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8"
+        style={{ opacity: fade }}
+      >
+        <div className="flex flex-col-reverse items-center gap-14 md:flex-row md:justify-between">
 
           {/* ── Text column ── */}
-          <motion.div className="flex-1 text-center md:text-left" style={{ y: textY }}>
-
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="mb-6 flex items-center justify-center gap-3 md:justify-start"
-            >
-              <motion.div
-                className="h-px origin-left bg-primary-500"
-                initial={{ width: 0 }}
-                animate={{ width: 32 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-              />
-              <span className="font-pixel text-xs tracking-widest text-primary-500">
-                PORTFOLIO
-              </span>
-            </motion.div>
-
-            <h1
-              className="mb-3 font-pixel text-3xl leading-loose text-white md:text-4xl lg:text-5xl"
-              style={{ textShadow: '0 0 30px rgba(255,34,68,0.3)' }}
-            >
-              <AssembledWord text="JOHN RYAN" className="glitch-text" startDelay={0.25} />
-              <br />
-              <AssembledWord
-                text="GOMEZ"
-                className="glitch-text text-primary-500"
-                startDelay={0.65}
-              />
-            </h1>
-
+          <motion.div className="w-full flex-1" style={{ y: textY }}>
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-              className="mb-10 min-h-[2rem] font-mono text-lg text-gray-400 md:text-xl"
+              className="p5-label mb-5 inline-block bg-p5-red px-3 py-1 text-white"
+              style={{ rotate: -3 }}
+              initial={{ x: -60, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 22, delay: 0.3 }}
             >
-              &gt; <TypedRole />
+              Portfolio // Phantom developer
             </motion.p>
 
-            {/* RPG stat block — lines type in one after another */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.15 }}
-              className="relative mb-10 inline-block overflow-hidden text-left"
-              style={{
-                border: '1px solid rgba(255,34,68,0.3)',
-                background: 'rgba(255,34,68,0.04)',
-                padding: '16px 20px',
-              }}
-            >
+            <h1 className="sr-only">John Ryan Gomez</h1>
+            <div aria-hidden className="mb-6 -rotate-3 space-y-2">
+              <RansomText text="JOHN RYAN" trigger="mount" delay={0.4} seed={11} className="text-6xl sm:text-7xl lg:text-8xl" />
+              <div className="pl-6 sm:pl-12">
+                <RansomText text="GOMEZ" trigger="mount" delay={0.75} seed={5} className="text-6xl sm:text-7xl lg:text-8xl" />
+              </div>
+            </div>
+
+            <div className="mb-10 mt-10 pl-2">
+              <RoleSlam />
+            </div>
+
+            {/* Status strips, alternating ink and paper */}
+            <div className="mb-10 max-w-md space-y-1.5">
               {STATUS_LINES.map(({ label, value }, i) => (
                 <motion.div
                   key={label}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 1.25 + i * 0.09 }}
-                  className="mb-1 flex items-center gap-4 last:mb-0"
+                  className={`cut-${i % 2 ? 'b' : 'd'} flex items-center justify-between gap-4 px-4 py-1.5 ${
+                    i % 2 ? 'bg-white text-p5-ink' : 'bg-p5-ink text-white'
+                  }`}
+                  style={{ marginLeft: i * 10 }}
+                  initial={{ x: -120, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 26, delay: 1.1 + i * 0.07 }}
                 >
-                  <span
-                    className="font-pixel text-gray-500"
-                    style={{ fontSize: '9px', minWidth: '72px' }}
-                  >
-                    {label}
-                  </span>
-                  <span className="font-mono text-xs text-accent-500">:: {value}</span>
+                  <span className="font-cond text-sm font-extrabold italic tracking-[0.2em] text-p5-red">{label}</span>
+                  <span className="font-display text-lg tracking-wide">{value}</span>
                 </motion.div>
               ))}
-
-              {/* Slow scan sweeping down the stat block */}
-              {!reduced && (
-                <motion.div
-                  aria-hidden
-                  className="pointer-events-none absolute inset-x-0 h-12"
-                  style={{
-                    background:
-                      'linear-gradient(180deg, transparent, rgba(255,224,0,0.07), transparent)',
-                  }}
-                  animate={{ y: ['-100%', '400%'] }}
-                  transition={{ duration: 4.5, repeat: Infinity, ease: 'linear', delay: 2 }}
-                />
-              )}
-            </motion.div>
+            </div>
 
             <motion.div
+              className="flex flex-wrap items-center gap-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.6 }}
-              className="flex flex-wrap items-center justify-center gap-6 md:justify-start"
+              transition={{ delay: 1.5 }}
             >
-              <MagneticButton href="#contact" className="arcade-btn">
-                CONTACT ME
-              </MagneticButton>
+              <button onClick={() => navigateTo('contact')} className="p5-btn p5-btn-red">
+                <span>Send a calling card</span>
+              </button>
 
-              <div className="flex items-center gap-4">
-                {SOCIALS.map(({ icon, href, label }) => (
+              <div className="flex items-center gap-3">
+                {SOCIALS.map(({ icon, href, label }, i) => (
                   <motion.a
                     key={label}
                     href={href}
                     target={href.startsWith('http') ? '_blank' : undefined}
                     rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
                     aria-label={label}
-                    className="text-gray-500 transition-colors hover:text-primary-400"
-                    whileHover={{ y: -4, scale: 1.15, filter: 'drop-shadow(0 0 8px rgba(255,34,68,0.8))' }}
+                    className={`cut-${['a', 'b', 'c'][i]} flex h-12 w-12 items-center justify-center bg-white text-p5-ink transition-colors hover:bg-p5-red hover:text-white`}
+                    whileHover={{ rotate: -10, scale: 1.15 }}
                     whileTap={{ scale: 0.9 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 14 }}
                   >
                     {icon}
                   </motion.a>
@@ -294,130 +180,84 @@ const Hero = () => {
             </motion.div>
           </motion.div>
 
-          {/* ── Profile image ──
-              Outer element owns the scroll parallax, inner one owns the
-              entrance, so neither fights the other over `scale`. */}
-          <motion.div className="flex-shrink-0" style={{ y: imageY, scale: imageScale }}>
+          {/* ── Portrait ── */}
+          <motion.div className="relative flex-shrink-0" style={{ y: imageY }}>
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="relative"
+              aria-hidden
+              className="absolute left-1/2 top-1/2 h-[34rem] w-[34rem] md:h-[44rem] md:w-[44rem]"
+              style={{ x: '-50%', y: '-50%', rotate: burstRotate }}
             >
-              {/* Offset frames drift with the pointer, the image itself does not */}
+              <Starburst color="#000" rays={28} className="h-full w-full animate-spin-slow opacity-80" />
+            </motion.div>
+
+            <motion.div
+              className="relative"
+              initial={reduced ? false : { scale: 0.3, rotate: 25, opacity: 0 }}
+              animate={{ scale: 1, rotate: 4, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 220, damping: 16, delay: 0.5 }}
+            >
+              {/* Black silhouette slab that drifts against the pointer */}
               <motion.div
                 aria-hidden
-                className="absolute -left-3 -top-3 h-full w-full border border-primary-500/40"
-                style={{ x: frameX, y: frameY, zIndex: 0 }}
+                className="cut-c absolute inset-0 bg-p5-ink"
+                style={{ x: shadowX, y: shadowY, top: 18, left: 18, right: -18, bottom: -18 }}
               />
-              <motion.div
-                aria-hidden
-                className="absolute -bottom-3 -right-3 h-full w-full border border-accent-500/30"
-                style={{ x: frameXInverse, y: frameYInverse, zIndex: 0 }}
-              />
-  
-              {/* Breathing glow */}
-              <motion.div
-                aria-hidden
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  background: 'radial-gradient(ellipse at center, rgba(255,34,68,0.28) 0%, transparent 70%)',
-                  filter: 'blur(24px)',
-                  zIndex: 0,
-                }}
-                animate={reduced ? undefined : { scale: [1, 1.12, 1], opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              />
-  
-              {/* Portrait, tilted by the pointer */}
-              <motion.div
-                className="relative overflow-hidden"
-                style={{
-                  rotateX: tiltX,
-                  rotateY: tiltY,
-                  transformPerspective: 900,
-                  border: '2px solid rgba(255,34,68,0.6)',
-                  clipPath:
-                    'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))',
-                  zIndex: 1,
-                }}
-              >
+
+              <motion.div className="cut-a relative bg-white p-3" style={{ x: portraitX, y: portraitY }}>
                 <img
                   src={profileImg}
                   alt="John Ryan Gomez"
-                  className="h-56 w-56 object-cover md:h-72 md:w-72"
-                  style={{ filter: 'contrast(1.05) saturate(0.9)' }}
+                  className="cut-b h-64 w-64 object-cover md:h-80 md:w-80"
+                  style={{ filter: 'contrast(1.1) saturate(1.05)' }}
                 />
+                {/* Red duotone wash over the lower corner */}
                 <div
                   aria-hidden
-                  className="pointer-events-none absolute inset-0"
-                  style={{
-                    background:
-                      'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,34,68,0.04) 3px, rgba(255,34,68,0.04) 4px)',
-                  }}
+                  className="pointer-events-none absolute inset-3 bg-p5-red mix-blend-multiply"
+                  style={{ clipPath: 'polygon(0 78%, 100% 58%, 100% 100%, 0 100%)' }}
                 />
-                {/* Scan bar travelling down the portrait */}
-                {!reduced && (
-                  <motion.div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-x-0 h-16"
-                    style={{
-                      background:
-                        'linear-gradient(180deg, transparent, rgba(255,34,68,0.16), transparent)',
-                    }}
-                    animate={{ y: ['-120%', '520%'] }}
-                    transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
-                  />
-                )}
               </motion.div>
-  
-              {/* Corner pips */}
+
+              {/* Speech bubble */}
               <motion.div
-                aria-hidden
-                className="absolute -right-1 -top-1 h-3 w-3 bg-primary-500"
-                style={{ boxShadow: '0 0 8px rgba(255,34,68,0.8)', zIndex: 2 }}
-                animate={reduced ? undefined : { opacity: [1, 0.35, 1] }}
-                transition={{ duration: 1.6, repeat: Infinity }}
-              />
-              <motion.div
-                aria-hidden
-                className="absolute -bottom-1 -left-1 h-3 w-3 bg-accent-500"
-                style={{ boxShadow: '0 0 8px rgba(255,224,0,0.6)', zIndex: 2 }}
-                animate={reduced ? undefined : { opacity: [0.35, 1, 0.35] }}
-                transition={{ duration: 1.6, repeat: Infinity }}
-              />
+                className="absolute -left-10 -top-8 md:-left-16"
+                initial={{ scale: 0, rotate: -30 }}
+                animate={{ scale: 1, rotate: -10 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 14, delay: 1.7 }}
+              >
+                <div
+                  className="bg-white px-5 py-3 font-heavy text-lg text-p5-ink"
+                  style={{
+                    clipPath: 'polygon(0 8%, 100% 0, 94% 78%, 40% 80%, 22% 100%, 26% 80%, 4% 84%)',
+                    paddingBottom: '1.6rem',
+                    filter: 'drop-shadow(4px 4px 0 #E60012)',
+                  }}
+                >
+                  Hi, I&apos;m Ryan!
+                </div>
+              </motion.div>
             </motion.div>
           </motion.div>
         </div>
       </motion.div>
 
-      {/* Scroll hint, pinned to the section rather than the content.
-          Scroll fade lives on the outer element, the delayed entrance on the
-          inner one — two elements so they don't both drive `opacity`. */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        style={{ opacity: hintOpacity }}
+      {/* Scroll hint */}
+      <motion.button
+        onClick={() => navigateTo('about')}
+        className="absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2 }}
+        aria-label="Scroll to About"
       >
-        <motion.div
-          className="flex flex-col items-center gap-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2 }}
-        >
-          <span
-            className="font-pixel text-gray-600"
-            style={{ fontSize: '8px', letterSpacing: '0.2em' }}
-          >
-            SCROLL DOWN
-          </span>
-          <motion.div
-            className="h-10 w-px bg-gradient-to-b from-primary-500 to-transparent"
-            animate={reduced ? undefined : { scaleY: [0.4, 1, 0.4], opacity: [0.4, 1, 0.4] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ originY: 0 }}
-          />
-        </motion.div>
-      </motion.div>
+        <span className="p5-label text-white/70">Scroll down</span>
+        <motion.span
+          className="h-5 w-5 bg-p5-red"
+          style={{ clipPath: 'polygon(0 0, 100% 0, 50% 100%)' }}
+          animate={reduced ? undefined : { y: [0, 8, 0] }}
+          transition={{ duration: 1, repeat: Infinity }}
+        />
+      </motion.button>
     </section>
   )
 }

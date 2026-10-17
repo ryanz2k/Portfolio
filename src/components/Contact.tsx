@@ -1,9 +1,8 @@
-import { useRef } from 'react'
-import { motion, useMotionTemplate, useMotionValue, useSpring } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { FaEnvelope, FaPhone, FaLinkedin, FaGithub } from 'react-icons/fa'
 import SectionShell from './fx/SectionShell'
-import MagneticButton from './fx/MagneticButton'
-import { useRichMotion } from '../hooks/useMotionFX'
+import Panel from './p5/Panel'
+import RansomText from './p5/RansomText'
 
 const CONTACT_ITEMS = [
   {
@@ -34,120 +33,92 @@ const CONTACT_ITEMS = [
   },
 ]
 
-const GLOW_SPRING = { stiffness: 140, damping: 26, mass: 0.4 }
+const CUTS = ['a', 'b', 'c', 'd'] as const
+const TILTS = [-1.5, 1, 1.5, -1]
 
 // Orchestration has to live in the parent's own variant — a `transition` prop
 // with staggerChildren on it is ignored.
 const gridVariants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.09 } },
+  visible: { transition: { staggerChildren: 0.08 } },
 }
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0 },
+  hidden: { opacity: 0, y: 50, rotate: -8 },
+  visible: { opacity: 1, y: 0, rotate: 0 },
 }
 
-const Contact = () => {
-  const gridRef = useRef<HTMLDivElement>(null)
-  const rich = useRichMotion()
+const Contact = () => (
+  <SectionShell id="contact" number="06" title="CONTACT" kicker="Send a calling card" tone="red">
+    <div className="mx-auto max-w-4xl">
 
-  // A soft light that trails the cursor across the contact grid.
-  const glowX = useSpring(useMotionValue(50), GLOW_SPRING)
-  const glowY = useSpring(useMotionValue(50), GLOW_SPRING)
-  const glow = useMotionTemplate`radial-gradient(420px circle at ${glowX}% ${glowY}%, rgba(255,34,68,0.13), transparent 70%)`
-
-  const trackGlow = (e: React.MouseEvent) => {
-    if (!rich || !gridRef.current) return
-    const rect = gridRef.current.getBoundingClientRect()
-    glowX.set(((e.clientX - rect.left) / rect.width) * 100)
-    glowY.set(((e.clientY - rect.top) / rect.height) * 100)
-  }
-
-  return (
-    <SectionShell id="contact" number="06" title="CONTACT" tone="base">
-      <div className="mx-auto max-w-2xl text-center">
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.55 }}
-          className="mb-12 font-mono text-sm leading-relaxed text-gray-400"
-        >
-          Open to new opportunities, freelance work, and interesting projects.
-          <br />
-          <span className="text-primary-400">Ping me anytime.</span>
-        </motion.p>
-
-        <div ref={gridRef} className="relative mb-12" onMouseMove={trackGlow}>
-          {rich && (
-            <motion.div
-              aria-hidden
-              className="pointer-events-none absolute -inset-8"
-              style={{ background: glow }}
-            />
-          )}
-
-          <motion.div
-            className="relative grid grid-cols-1 gap-4 sm:grid-cols-2"
-            variants={gridVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.25 }}
-          >
-            {CONTACT_ITEMS.map(({ icon, label, value, href, external }) => (
-              <motion.a
-                key={label}
-                href={href}
-                target={external ? '_blank' : undefined}
-                rel={external ? 'noopener noreferrer' : undefined}
-                variants={cardVariants}
-                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                whileHover={{ y: -6 }}
-                whileTap={{ scale: 0.97 }}
-                className="arcade-card group flex items-center gap-4 p-5 text-left"
-              >
-                <motion.span
-                  className="flex-shrink-0 text-xl text-primary-500"
-                  style={{ filter: 'drop-shadow(0 0 6px rgba(255,34,68,0.5))' }}
-                  whileHover={{ scale: 1.25, rotate: -10 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 12 }}
-                >
-                  {icon}
-                </motion.span>
-                <div className="min-w-0">
-                  <p
-                    className="mb-1 font-pixel text-gray-500"
-                    style={{ fontSize: '8px', letterSpacing: '0.2em' }}
-                  >
-                    {label}
-                  </p>
-                  <p className="truncate font-mono text-xs text-gray-200 transition-colors group-hover:text-primary-400">
-                    {value}
-                  </p>
-                </div>
-              </motion.a>
-            ))}
-          </motion.div>
+      {/* The calling card */}
+      <motion.div
+        className="mx-auto mb-16 max-w-2xl"
+        initial={{ opacity: 0, scale: 2, rotate: -20 }}
+        whileInView={{ opacity: 1, scale: 1, rotate: -3 }}
+        viewport={{ once: true, amount: 0.4 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+        style={{ filter: 'drop-shadow(10px 10px 0 #000)' }}
+      >
+        <div className="cut-a halftone bg-p5-paper px-6 py-10 text-center text-p5-ink sm:px-12">
+          <p className="p5-label mb-4 text-p5-red">To whoever is reading this,</p>
+          <RansomText text="LET'S WORK TOGETHER" seed={9} onLight className="text-3xl sm:text-5xl" />
+          <p className="mx-auto mt-6 max-w-md font-body text-base leading-relaxed">
+            Open to new opportunities, freelance work, and interesting projects.{' '}
+            <span className="bg-p5-red px-1 font-semibold text-white">Ping me anytime.</span>
+          </p>
+          <p className="mt-4 font-cond text-lg font-extrabold italic tracking-widest">— JRG</p>
         </div>
+      </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.92 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ type: 'spring', stiffness: 220, damping: 18, delay: 0.25 }}
-        >
-          <MagneticButton
-            href="mailto:JohnRyanGomez812@gmail.com"
-            className="arcade-btn text-sm"
-            pull={18}
+      <motion.div
+        className="mb-16 grid grid-cols-1 gap-8 sm:grid-cols-2"
+        variants={gridVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.25 }}
+      >
+        {CONTACT_ITEMS.map(({ icon, label, value, href, external }, i) => (
+          <motion.a
+            key={label}
+            href={href}
+            target={external ? '_blank' : undefined}
+            rel={external ? 'noopener noreferrer' : undefined}
+            variants={cardVariants}
+            transition={{ type: 'spring', stiffness: 360, damping: 22 }}
+            whileTap={{ scale: 0.96 }}
+            className="block"
+            style={{ rotate: TILTS[i] }}
           >
-            SEND MESSAGE
-          </MagneticButton>
-        </motion.div>
-      </div>
-    </SectionShell>
-  )
-}
+            <Panel tone="black" cut={CUTS[i]} shadow="white" className="flex items-center gap-4 p-5">
+              <span className="cut-b flex h-12 w-12 flex-shrink-0 items-center justify-center bg-p5-red text-xl text-white transition-transform group-hover/panel:-rotate-12 group-hover/panel:scale-110">
+                {icon}
+              </span>
+              <div className="min-w-0">
+                <p className="p5-label text-p5-red">{label}</p>
+                <p className="truncate font-display text-lg tracking-wide text-white group-hover/panel:text-p5-bright">
+                  {value}
+                </p>
+              </div>
+            </Panel>
+          </motion.a>
+        ))}
+      </motion.div>
+
+      <motion.div
+        className="text-center"
+        initial={{ opacity: 0, scale: 0.6 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ type: 'spring', stiffness: 380, damping: 16, delay: 0.2 }}
+      >
+        <a href="mailto:JohnRyanGomez812@gmail.com" className="p5-btn text-2xl md:text-3xl">
+          <span>Send message</span>
+        </a>
+      </motion.div>
+    </div>
+  </SectionShell>
+)
 
 export default Contact

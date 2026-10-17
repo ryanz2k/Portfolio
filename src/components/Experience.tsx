@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { motion, useScroll, useSpring } from 'framer-motion'
 import SectionShell from './fx/SectionShell'
-import TiltCard from './fx/TiltCard'
+import Panel from './p5/Panel'
 
 interface ExperienceItem {
   title: string
@@ -50,11 +50,8 @@ const EXPERIENCES: ExperienceItem[] = [
   },
 ]
 
-const TYPE_STYLES: Record<ExperienceItem['type'], { color: string; glow: string }> = {
-  'REMOTE':    { color: '#60a5fa', glow: 'rgba(96,165,250,0.4)' },
-  'ON-SITE':   { color: '#FFE000', glow: 'rgba(255,224,0,0.4)' },
-  'FREELANCE': { color: '#a78bfa', glow: 'rgba(167,139,250,0.4)' },
-}
+const NUMERALS = ['I', 'II', 'III', 'IV', 'V']
+const CUTS = ['a', 'd', 'b'] as const
 
 const Experience = () => {
   const timelineRef = useRef<HTMLDivElement>(null)
@@ -67,100 +64,83 @@ const Experience = () => {
   const railScale = useSpring(scrollYProgress, { stiffness: 90, damping: 26, mass: 0.4 })
 
   return (
-    <SectionShell id="experience" number="02" title="EXPERIENCE" tone="base">
-      <div ref={timelineRef} className="relative mx-auto max-w-3xl">
+    <SectionShell id="experience" number="02" title="EXPERIENCE" kicker="Confidant files" tone="red">
+      <div ref={timelineRef} className="relative mx-auto max-w-4xl">
 
-        {/* Track and the glowing fill that follows the scroll */}
-        <div
-          aria-hidden
-          className="absolute bottom-6 left-[5px] top-2 w-px"
-          style={{ background: 'rgba(255,34,68,0.12)' }}
-        />
+        {/* Rail: an ink track that fills white as you scroll */}
+        <div aria-hidden className="absolute bottom-8 left-[27px] top-4 hidden w-2 bg-p5-ink/40 sm:block" />
         <motion.div
           aria-hidden
-          className="absolute bottom-6 left-[5px] top-2 w-px origin-top"
-          style={{
-            scaleY: railScale,
-            background: 'linear-gradient(to bottom, #FF2244, rgba(255,34,68,0.25))',
-            boxShadow: '0 0 10px rgba(255,34,68,0.6)',
-          }}
+          className="absolute bottom-8 left-[27px] top-4 hidden w-2 origin-top bg-white sm:block"
+          style={{ scaleY: railScale }}
         />
 
-        {EXPERIENCES.map((exp, index) => {
-          const typeStyle = TYPE_STYLES[exp.type]
-          return (
+        {EXPERIENCES.map((exp, index) => (
+          <motion.div
+            key={exp.title}
+            initial={{ opacity: 0, x: index % 2 ? 120 : -120, rotate: index % 2 ? 4 : -4 }}
+            whileInView={{ opacity: 1, x: 0, rotate: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+            className="relative mb-14 flex gap-6 last:mb-0 sm:gap-10"
+          >
+            {/* Numeral badge on the rail */}
             <motion.div
-              key={exp.title}
-              initial={{ opacity: 0, x: -40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.6, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="relative mb-12 flex gap-6 last:mb-0"
+              className="relative z-10 hidden flex-shrink-0 sm:block"
+              initial={{ scale: 0, rotate: -90 }}
+              whileInView={{ scale: 1, rotate: -8 }}
+              viewport={{ once: true, amount: 0.6 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 14, delay: 0.15 }}
             >
-              {/* Timeline node */}
-              <div className="flex flex-shrink-0 flex-col items-center">
-                <motion.div
-                  className="mt-1 h-3 w-3 flex-shrink-0"
-                  style={{
-                    background: '#FF2244',
-                    clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
-                  }}
-                  initial={{ scale: 0, rotate: -90 }}
-                  whileInView={{
-                    scale: 1,
-                    rotate: 0,
-                    boxShadow: '0 0 14px rgba(255,34,68,0.9)',
-                  }}
-                  viewport={{ once: true, amount: 0.6 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 16, delay: index * 0.1 }}
-                />
-              </div>
-
-              <TiltCard max={5} className="flex-1">
-                <div className="arcade-card group h-full p-6">
-                  <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <h3 className="mb-2 font-pixel text-xs tracking-wider text-white transition-colors group-hover:text-primary-300">
-                        {exp.title}
-                      </h3>
-                      <p className="font-mono text-sm text-primary-400">{exp.company}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <span
-                        className="font-pixel"
-                        style={{
-                          fontSize: '8px',
-                          letterSpacing: '0.15em',
-                          color: typeStyle.color,
-                          textShadow: `0 0 8px ${typeStyle.glow}`,
-                        }}
-                      >
-                        {exp.type}
-                      </span>
-                      <span className="font-mono text-xs text-gray-500">{exp.period}</span>
-                    </div>
-                  </div>
-
-                  <ul className="space-y-2">
-                    {exp.description.map((item, idx) => (
-                      <motion.li
-                        key={item}
-                        initial={{ opacity: 0, x: -12 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, amount: 0.5 }}
-                        transition={{ duration: 0.4, delay: index * 0.1 + 0.2 + idx * 0.07 }}
-                        className="flex items-start gap-3"
-                      >
-                        <span className="mt-0.5 flex-shrink-0 font-mono text-xs text-primary-500">▸</span>
-                        <span className="font-mono text-xs leading-relaxed text-gray-400">{item}</span>
-                      </motion.li>
-                    ))}
-                  </ul>
-                </div>
-              </TiltCard>
+              <span
+                className="cut-c flex h-16 w-16 items-center justify-center bg-p5-ink font-display text-3xl text-white"
+                style={{ filter: 'drop-shadow(4px 4px 0 #fff)' }}
+              >
+                {NUMERALS[index]}
+              </span>
             </motion.div>
-          )
-        })}
+
+            <div className="flex-1">
+              <Panel tone="black" cut={CUTS[index % CUTS.length]} shadow="white" className="p-6 md:p-8">
+                {/* Type stamp */}
+                <span
+                  className="absolute right-5 top-5 border-[3px] border-p5-red px-2 font-display text-lg tracking-widest text-p5-red"
+                  style={{ transform: 'rotate(8deg)' }}
+                >
+                  {exp.type}
+                </span>
+
+                <p className="p5-label mb-1 text-p5-red">{exp.period}</p>
+                <h3 className="mb-3 pr-28 font-display text-3xl uppercase leading-tight tracking-wide transition-colors group-hover/panel:text-p5-bright md:text-4xl">
+                  {exp.title}
+                </h3>
+                <span className="cut-sm mb-6 inline-block bg-white px-3 py-0.5 font-heavy text-sm uppercase text-p5-ink">
+                  {exp.company}
+                </span>
+
+                <ul className="space-y-3">
+                  {exp.description.map((item, idx) => (
+                    <motion.li
+                      key={item}
+                      initial={{ opacity: 0, x: -24 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true, amount: 0.5 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 28, delay: 0.2 + idx * 0.06 }}
+                      className="flex items-start gap-3"
+                    >
+                      <span
+                        aria-hidden
+                        className="mt-1.5 h-3 w-3 flex-shrink-0 bg-p5-red"
+                        style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%, 25% 50%)' }}
+                      />
+                      <span className="font-body text-sm leading-relaxed text-white/85">{item}</span>
+                    </motion.li>
+                  ))}
+                </ul>
+              </Panel>
+            </div>
+          </motion.div>
+        ))}
       </div>
     </SectionShell>
   )

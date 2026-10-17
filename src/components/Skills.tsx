@@ -9,7 +9,7 @@ import {
 import { TbBrandCSharp } from 'react-icons/tb'
 
 import SectionShell from './fx/SectionShell'
-import TiltCard from './fx/TiltCard'
+import Panel from './p5/Panel'
 
 interface SkillItem {
   name: string
@@ -83,98 +83,74 @@ const SKILL_CATEGORIES: SkillCategory[] = [
   },
 ]
 
-// Orchestration has to live in the parent's own variant — a `transition` prop
+/// Orchestration has to live in the parent's own variant — a `transition` prop
 // with staggerChildren on it is ignored.
-const gridVariants = {
+const listVariants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.15 } },
+  visible: { transition: { staggerChildren: 0.04, delayChildren: 0.15 } },
 }
 
-const cellVariants = {
-  hidden: { opacity: 0, scale: 0.6, y: 12 },
-  visible: { opacity: 1, scale: 1, y: 0 },
+const rowVariants = {
+  hidden: { opacity: 0, x: -40 },
+  visible: { opacity: 1, x: 0 },
 }
 
-const SkillCell = ({ skill }: { skill: SkillItem }) => (
-  <motion.div
-    variants={cellVariants}
-    transition={{ type: 'spring', stiffness: 420, damping: 24 }}
-    whileHover={{
-      scale: 1.14,
-      y: -5,
-      borderColor: 'rgba(255,34,68,0.7)',
-      backgroundColor: 'rgba(255,34,68,0.1)',
-      boxShadow: '0 0 18px rgba(255,34,68,0.35)',
-    }}
-    className="group flex flex-col items-center gap-2 p-3"
-    style={{
-      border: '1px solid rgba(255,34,68,0.15)',
-      backgroundColor: 'rgba(255,34,68,0.03)',
-      cursor: 'default',
-      willChange: 'transform',
-    }}
+const CUTS = ['a', 'b', 'c', 'd'] as const
+
+/**
+ * One row of a P5 skill menu: an element-style icon chip and the skill name.
+ * Hovering flips the row to paper with ink text and gives it the menu jitter.
+ */
+const SkillRow = ({ skill }: { skill: SkillItem }) => (
+  <motion.li
+    variants={rowVariants}
+    transition={{ type: 'spring', stiffness: 460, damping: 28 }}
+    className="group/row cut-d flex items-center gap-3 bg-p5-coal px-2 py-1.5 transition-colors duration-100 hover:bg-white"
   >
-    <motion.span
-      className="text-2xl text-primary-400 transition-colors group-hover:text-primary-300"
-      style={{ filter: 'drop-shadow(0 0 4px rgba(255,34,68,0.4))' }}
-      whileHover={{ rotate: [0, -12, 12, 0] }}
-      transition={{ duration: 0.45 }}
-    >
+    <span className="cut-b flex h-8 w-8 flex-shrink-0 items-center justify-center bg-p5-red text-lg text-white transition-transform group-hover/row:-rotate-12">
       {skill.icon}
-    </motion.span>
-    <span className="text-center font-mono text-xs leading-tight text-gray-400 transition-colors group-hover:text-gray-200">
+    </span>
+    <span className="font-cond text-base font-bold uppercase tracking-wide text-white transition-colors group-hover/row:animate-jitter group-hover/row:text-p5-ink">
       {skill.name}
     </span>
-  </motion.div>
+  </motion.li>
 )
 
 const Skills = () => (
-  <SectionShell id="skills" number="04" title="SKILLS" tone="base">
-    <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+  <SectionShell id="skills" number="04" title="SKILLS" kicker="Skill inventory" tone="red">
+    <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
       {SKILL_CATEGORIES.map((category, catIndex) => (
         <motion.div
           key={category.title}
-          initial={{ opacity: 0, y: 36 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 60, rotate: catIndex % 2 ? 4 : -4 }}
+          whileInView={{ opacity: 1, y: 0, rotate: catIndex % 2 ? 0.6 : -0.6 }}
           viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.55, delay: catIndex * 0.08, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ type: 'spring', stiffness: 260, damping: 22, delay: (catIndex % 2) * 0.08 }}
         >
-          <TiltCard max={5} className="h-full">
-            <div className="arcade-card h-full p-6">
-              <div className="mb-6 flex items-center gap-3">
-                <motion.span
-                  className="text-xl text-primary-500"
-                  style={{ filter: 'drop-shadow(0 0 6px rgba(255,34,68,0.5))' }}
-                  whileHover={{ scale: 1.2, rotate: -10 }}
-                >
-                  {category.icon}
-                </motion.span>
-                <h3 className="font-pixel text-xs tracking-widest text-white">
-                  {category.title}
-                </h3>
-                <motion.div
-                  className="h-px flex-1 origin-left bg-primary-500/20"
-                  initial={{ scaleX: 0 }}
-                  whileInView={{ scaleX: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.7, delay: 0.2 }}
-                />
-              </div>
-
-              {/* Cells pop in one by one via the parent's stagger */}
-              <motion.div
-                className="grid grid-cols-3 gap-2 sm:grid-cols-4"
-                variants={gridVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
-              >
-                {category.skills.map((skill) => (
-                  <SkillCell key={skill.name} skill={skill} />
-                ))}
-              </motion.div>
+          <Panel tone="black" cut={CUTS[catIndex % CUTS.length]} shadow="white" interactive={false} className="p-6">
+            <div className="mb-5 flex items-center gap-3">
+              <span className="cut-c flex h-10 w-10 items-center justify-center bg-white text-xl text-p5-ink">
+                {category.icon}
+              </span>
+              <h3 className="font-display text-3xl tracking-wide">{category.title}</h3>
+              <span className="ml-auto font-cond text-sm font-extrabold italic text-p5-red">
+                {category.skills.length} SKILLS
+              </span>
             </div>
-          </TiltCard>
+
+            {/* Rows slide in one by one via the parent's stagger */}
+            <motion.ul
+              className="grid grid-cols-1 gap-1.5 sm:grid-cols-2"
+              variants={listVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+            >
+              {category.skills.map((skill) => (
+                <SkillRow key={skill.name} skill={skill} />
+              ))}
+            </motion.ul>
+          </Panel>
         </motion.div>
       ))}
     </div>

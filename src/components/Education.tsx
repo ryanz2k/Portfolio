@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { FaAward } from 'react-icons/fa'
 import ucLogo from '../assets/uc-logo.webp'
 import SectionShell from './fx/SectionShell'
-import TiltCard from './fx/TiltCard'
+import Panel from './p5/Panel'
 
 interface EducationItem {
   institution: string
@@ -47,99 +47,101 @@ const HONORS: AwardItem[] = [
   { title: "Dean's Lister", issuer: '5× consecutive' },
 ]
 
-// Orchestration has to live in the parent's own variant — a `transition` prop
+/// Orchestration has to live in the parent's own variant — a `transition` prop
 // with staggerChildren on it is ignored.
 const listVariants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.06 } },
+  visible: { transition: { staggerChildren: 0.05 } },
 }
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 18 },
-  visible: { opacity: 1, y: 0 },
+  hidden: { opacity: 0, x: -50 },
+  visible: { opacity: 1, x: 0 },
 }
 
-const GroupHeading = ({ label }: { label: string }) => (
-  <motion.p
-    className="mb-8 font-pixel text-xs tracking-widest text-gray-600"
-    initial={{ opacity: 0, x: -16 }}
+const STAR_PATH =
+  'polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'
+
+const GroupHeading = ({ label, tilt = -2 }: { label: string; tilt?: number }) => (
+  <motion.h3
+    className="mb-8 inline-block"
+    initial={{ opacity: 0, x: -160 }}
     whileInView={{ opacity: 1, x: 0 }}
     viewport={{ once: true }}
-    transition={{ duration: 0.5 }}
+    transition={{ type: 'spring', stiffness: 360, damping: 26 }}
   >
-    ── {label}
-  </motion.p>
+    <span
+      className="cut-b inline-block bg-p5-red px-4 py-1 font-display text-2xl uppercase tracking-wide text-white md:text-3xl"
+      style={{ transform: `rotate(${tilt}deg)`, filter: 'drop-shadow(4px 4px 0 #fff)' }}
+    >
+      {label}
+    </span>
+  </motion.h3>
 )
 
 const Education = () => (
-  <SectionShell id="education" number="05" title="EDUCATION" tone="dim">
-    <div className="mx-auto max-w-4xl space-y-16">
+  <SectionShell id="education" number="05" title="EDUCATION" kicker="Report card" tone="black">
+    <div className="mx-auto max-w-5xl space-y-20">
 
       {/* Academic record */}
       <div>
-        <GroupHeading label="ACADEMIC RECORD" />
-        <div className="space-y-4">
+        <GroupHeading label="Academic record" />
+        <div className="space-y-8">
           {EDUCATION_ITEMS.map((edu, i) => (
             <motion.div
               key={edu.institution}
-              initial={{ opacity: 0, x: -32 }}
+              initial={{ opacity: 0, x: i % 2 ? 140 : -140 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.55, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+              style={{ rotate: i % 2 ? 0.8 : -0.8 }}
             >
-              <TiltCard max={5}>
-                <div className="arcade-card group flex items-center gap-6 p-6">
-                  {edu.isUC && (
-                    <motion.div
-                      className="flex-shrink-0 rounded bg-white p-1.5"
-                      style={{ border: '1px solid rgba(255,34,68,0.3)' }}
-                      whileHover={{ scale: 1.12, rotate: -4 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 14 }}
-                    >
-                      <img src={ucLogo} alt="University of Cebu logo" className="h-10 w-10 object-contain" />
-                    </motion.div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <h4 className="mb-1 font-pixel text-xs tracking-wide text-white">
-                      {edu.institution}
-                    </h4>
-                    <p className="mb-2 font-mono text-sm text-primary-400">{edu.degree}</p>
-                    <span className="font-mono text-xs text-gray-500">{edu.period}</span>
-                  </div>
+              <Panel tone="white" cut={i % 2 ? 'c' : 'a'} shadow="red" className="halftone flex items-center gap-6 p-6">
+                {edu.isUC && (
+                  <span className="cut-b flex-shrink-0 bg-white p-2 ring-4 ring-p5-ink transition-transform group-hover/panel:-rotate-6">
+                    <img src={ucLogo} alt="University of Cebu logo" className="h-12 w-12 object-contain" />
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-display text-2xl uppercase leading-tight tracking-wide md:text-3xl">
+                    {edu.institution}
+                  </h4>
+                  <p className="font-cond text-lg font-bold italic text-p5-red">{edu.degree}</p>
+                  <p className="font-display text-lg sm:hidden">{edu.period}</p>
                 </div>
-              </TiltCard>
+                <span className="hidden flex-shrink-0 bg-p5-ink px-3 py-1 font-display text-xl text-white sm:block">
+                  {edu.period}
+                </span>
+              </Panel>
             </motion.div>
           ))}
         </div>
       </div>
 
-      {/* Honors */}
+      {/* Honors, stamped like grades */}
       <div>
-        <GroupHeading label="HONORS & AWARDS" />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <GroupHeading label="Honors & awards" tilt={1.5} />
+        <div className="flex flex-wrap gap-10">
           {HONORS.map((honor, i) => (
             <motion.div
               key={honor.title}
-              initial={{ opacity: 0, scale: 0.85, rotate: -2 }}
-              whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+              className="flex items-center gap-4"
+              initial={{ opacity: 0, scale: 3, rotate: -40 }}
+              whileInView={{ opacity: 1, scale: 1, rotate: i % 2 ? 6 : -6 }}
               viewport={{ once: true }}
-              transition={{ type: 'spring', stiffness: 260, damping: 20, delay: i * 0.1 }}
-              whileHover={{ scale: 1.04 }}
-              className="arcade-card flex items-center gap-4 p-4"
+              transition={{ type: 'spring', stiffness: 380, damping: 16, delay: i * 0.15 }}
+              whileHover={{ scale: 1.08, rotate: 0 }}
             >
-              <motion.span
-                animate={{ rotate: [0, -8, 8, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
-              >
-                <FaAward
-                  className="flex-shrink-0 text-2xl text-accent-500"
-                  style={{ filter: 'drop-shadow(0 0 6px rgba(255,224,0,0.5))' }}
-                />
-              </motion.span>
-              <div>
-                <p className="font-mono text-sm font-bold text-white">{honor.title}</p>
+              <span className="relative flex h-20 w-20 flex-shrink-0 items-center justify-center">
+                <span className="absolute inset-0 animate-spin-mid bg-p5-red" style={{ clipPath: STAR_PATH }} />
+                <FaAward className="relative text-2xl text-white" />
+              </span>
+              <div className="border-4 border-white px-4 py-2">
+                <p className="font-display text-3xl uppercase leading-none text-white">{honor.title}</p>
                 {honor.issuer && (
-                  <p className="font-mono text-xs text-gray-500">{honor.issuer}</p>
+                  <p className="font-cond text-sm font-extrabold uppercase italic tracking-widest text-p5-red">
+                    {honor.issuer}
+                  </p>
                 )}
               </div>
             </motion.div>
@@ -147,48 +149,39 @@ const Education = () => (
         </div>
       </div>
 
-      {/* Certificates */}
+      {/* Certificates as an item list */}
       <div>
-        <GroupHeading label="CERTIFICATES UNLOCKED" />
-        <motion.div
-          className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+        <GroupHeading label="Items acquired" tilt={-3} />
+        <motion.ul
+          className="grid grid-cols-1 gap-2 sm:grid-cols-2"
           variants={listVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.15 }}
         >
-          {CERTIFICATES.map((cert) => (
-            <motion.div
+          {CERTIFICATES.map((cert, i) => (
+            <motion.li
               key={cert.title}
               variants={itemVariants}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              whileHover={{
-                scale: 1.03,
-                x: 4,
-                borderColor: 'rgba(255,224,0,0.45)',
-                backgroundColor: 'rgba(255,224,0,0.04)',
-              }}
-              className="group flex items-center gap-3 p-4"
-              style={{
-                border: '1px solid rgba(255,34,68,0.2)',
-                backgroundColor: 'rgba(255,34,68,0.03)',
-              }}
+              transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+              className={`group cut-${i % 2 ? 'b' : 'd'} flex items-center gap-3 bg-p5-coal px-4 py-3 transition-colors duration-100 hover:bg-p5-red`}
             >
               <span
-                className="flex-shrink-0 font-pixel text-primary-500 transition-colors group-hover:text-accent-500"
-                style={{ fontSize: '10px' }}
-              >
-                ✦
+                aria-hidden
+                className="h-4 w-4 flex-shrink-0 bg-p5-red transition-colors group-hover:bg-white"
+                style={{ clipPath: STAR_PATH }}
+              />
+              <span className="flex-1 font-cond text-base font-bold uppercase tracking-wide text-white">
+                {cert.title}
               </span>
-              <div>
-                <p className="font-mono text-xs font-medium text-gray-200">{cert.title}</p>
-                {cert.issuer && (
-                  <p className="font-mono text-xs text-gray-600">{cert.issuer}</p>
-                )}
-              </div>
-            </motion.div>
+              {cert.issuer && (
+                <span className="font-cond text-sm italic text-white/60 group-hover:text-white">
+                  {cert.issuer}
+                </span>
+              )}
+            </motion.li>
           ))}
-        </motion.div>
+        </motion.ul>
       </div>
     </div>
   </SectionShell>
